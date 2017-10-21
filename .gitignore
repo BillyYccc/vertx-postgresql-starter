@@ -1,0 +1,33 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Generated files
+bin/
+gen/
+out/
+build/
+
+# User-specific stuff:
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/dictionaries
+
+# Gradle:
+!gradle-wrapper.jar
+.gradle/
+.idea/**/gradle.xml
+.idea/**/libraries
+
+# vertx
+.vertx/

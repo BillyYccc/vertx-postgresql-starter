@@ -1,0 +1,51 @@
+plugins {
+  id "application"
+  id "com.github.johnrengelman.shadow" version "2.0.1"
+}
+
+group 'com.billyyccc'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+mainClassName = 'io.vertx.core.Launcher'
+
+ext {
+  //dependencies
+  junitVersion = '4.12'
+  vertxVersion = '3.5.0'
+}
+
+def mainVerticleName = 'com.billyyccc.MainVerticle'
+def watchForChange = 'src/**/*'
+def doOnChange = './gradlew classes'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile "io.vertx:vertx-core:$vertxVersion"
+  compile "io.vertx:vertx-web:$vertxVersion"
+  testCompile "junit:junit:$junitVersion"
+  testCompile "io.vertx:vertx-unit:$vertxVersion"
+}
+
+shadowJar {
+  classifier = 'fat'
+  manifest {
+    attributes "Main-Verticle": mainVerticleName
+  }
+  mergeServiceFiles {
+    include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+  }
+}
+
+run {
+  args = ['run', mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$mainClassName", "--on-redeploy=$doOnChange"]
+}

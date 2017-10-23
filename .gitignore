@@ -18,6 +18,11 @@ gen/
 out/
 build/
 
+# IntelliJ IDEA
+.idea/
+*.iml
+/local.properties
+
 # User-specific stuff:
 .idea/**/workspace.xml
 .idea/**/tasks.xml

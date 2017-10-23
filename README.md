@@ -25,7 +25,7 @@ After a successful build, a fat jar file is generated in directory [build/libs]
 ## Deployment
 
 ##### 1. Build a Docker image
-`docker build -t vertx-postgresql-starter`
+`docker build -t vertx-postgresql-starter .`
 
 ##### 2. Start a Docker container
 `docker run -t -i -p 8080:8080 vertx-postgresql-starter`

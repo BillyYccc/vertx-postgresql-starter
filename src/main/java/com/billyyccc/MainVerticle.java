@@ -28,6 +28,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 
 /**
+ * MainVerticle class to deploy the verticles needed.
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 

@@ -25,16 +25,19 @@
 package com.billyyccc;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 
 /**
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
 public class MainVerticle extends AbstractVerticle {
+  private static final String HTTP_SERVER_VERTICLE_IDENTIFIER = "com.billyyccc.http.HttpServerVerticle";
+
   @Override
   public void start() throws Exception {
-    vertx.createHttpServer()
-      .requestHandler(req-> req.response().end("Hello, World!"))
-      .listen(8080);
+    Future<String> httpVerticleDeployment = Future.future();
+    vertx.deployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER,
+                         httpVerticleDeployment.completer());
   }
 }

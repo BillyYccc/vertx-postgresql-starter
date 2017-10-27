@@ -17,6 +17,7 @@ ext {
   //dependencies
   junitVersion = '4.12'
   vertxVersion = '3.5.0'
+  jacksonVersion = '2.9.0'
 }
 
 def mainVerticleName = 'com.billyyccc.MainVerticle'
@@ -35,8 +36,10 @@ dependencies {
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-web:$vertxVersion"
 //  compileOnly("io.vertx:vertx-codegen:${vertxVersion}")
+  compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: "$jacksonVersion"
   testCompile "junit:junit:$junitVersion"
   testCompile "io.vertx:vertx-unit:$vertxVersion"
+
 }
 
 shadowJar {

@@ -29,6 +29,7 @@ import io.vertx.core.Future;
 
 /**
  * MainVerticle class to deploy the verticles needed.
+ *
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
@@ -39,6 +40,6 @@ public class MainVerticle extends AbstractVerticle {
   public void start() throws Exception {
     Future<String> httpVerticleDeployment = Future.future();
     vertx.deployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER,
-                         httpVerticleDeployment.completer());
+      httpVerticleDeployment.completer());
   }
 }

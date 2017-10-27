@@ -36,20 +36,37 @@ This project provides an easy example of a CRUD REST service. The HTTP header sh
 ### REST API Endpoints List
 
 ##### Get All books or some books by specific conditions
+
 `GET /books`
+
 Returns all Books by default, query parameters `title`, `category`,`publicationdate` can be used to filter the results.
 
+Filter by query parameters:
+
+`?title=effectivejava` 
+
+`?category=computer`
+
+`?publicationdate=2000-01-01`
+
 ##### Get a specific book by id
-`GET /book/:id`
+
+`GET /books/:id`
+
 Return the specific Book by id.
 
 ##### Add a new book
-`POST /book/:id`
+
+`POST /books/:id`
+
 Return the new added Book
 
 ##### Update an book or create one if not exists
-`PUT /book/:id`
+
+`PUT /books/:id`
+
 Return the update(or create) Book
 
 ##### Delete an existing book
-`DELETE /book/:id`
+
+`DELETE /books/:id`

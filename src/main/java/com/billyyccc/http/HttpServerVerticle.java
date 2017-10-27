@@ -14,6 +14,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 /**
  * HttpServer Verticle deployed to provide REST services.
+ *
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
@@ -28,24 +29,23 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     Router router = Router.router(vertx);
 
-    router.route("/").handler(BodyHandler.create());
+    router.route().handler(BodyHandler.create());
     router.get(ApiRoutes.GET_BOOKS).handler(new GetBooksHandler());
     router.post(ApiRoutes.ADD_NEW_BOOK).handler(new AddBookHandler());
     router.delete(ApiRoutes.DELETE_BOOK).handler(new DeleteBookHandler());
     router.get(ApiRoutes.GET_BOOK).handler(new GetBookHandler());
 
-
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)
-              .listen(httpServerPort, ar -> {
-                if (ar.succeeded()) {
-                  LOGGER.info("HTTP server is running on port " + httpServerPort);
-                  startFuture.complete();
-                } else {
-                  LOGGER.error("Fail to start a HTTP server ", ar.cause());
-                  startFuture.fail(ar.cause());
-                }
-              });
+      .listen(httpServerPort, ar -> {
+        if (ar.succeeded()) {
+          LOGGER.info("HTTP server is running on port " + httpServerPort);
+          startFuture.complete();
+        } else {
+          LOGGER.error("Fail to start a HTTP server ", ar.cause());
+          startFuture.fail(ar.cause());
+        }
+      });
 
   }
 }

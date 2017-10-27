@@ -3,7 +3,7 @@ FROM openjdk:8-jre-alpine
 LABEL maintainer="Billy Yuan <billy112487983@gmail.com>" 
 
 ENV VERTICLE_FILE vertx-postgresql-starter-1.0-SNAPSHOT-fat.jar
-ENV HTTP_SERVER_CONFIG http-server-conf.json
+ENV HTTP_SERVER_CONFIG application-conf.json
 
 # Set the location of the verticles
 ENV VERTICLE_HOME /usr/verticles

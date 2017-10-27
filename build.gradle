@@ -6,8 +6,10 @@ plugins {
 group 'com.billyyccc'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+compileJava {
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+}
 
 mainClassName = 'io.vertx.core.Launcher'
 
@@ -15,6 +17,7 @@ ext {
   //dependencies
   junitVersion = '4.12'
   vertxVersion = '3.5.0'
+  jacksonVersion = '2.9.0'
 }
 
 def mainVerticleName = 'com.billyyccc.MainVerticle'
@@ -32,8 +35,11 @@ repositories {
 dependencies {
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-web:$vertxVersion"
+//  compileOnly("io.vertx:vertx-codegen:${vertxVersion}")
+  compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: "$jacksonVersion"
   testCompile "junit:junit:$junitVersion"
   testCompile "io.vertx:vertx-unit:$vertxVersion"
+
 }
 
 shadowJar {

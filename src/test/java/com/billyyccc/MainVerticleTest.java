@@ -55,10 +55,10 @@ public class MainVerticleTest {
   @Test
   public void testServer(TestContext testContext) {
     Async async = testContext.async();
-    vertx.createHttpClient().getNow(8080, "localhost", "/", res -> {
+    vertx.createHttpClient().getNow(8080, "localhost", "/books", res -> {
       testContext.assertEquals(res.statusCode(), 200);
       res.bodyHandler(body -> {
-        testContext.assertTrue(body.length()>0);
+        testContext.assertTrue(body.length() >= 0);
         async.complete();
       });
     });

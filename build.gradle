@@ -6,10 +6,9 @@ plugins {
 group 'com.billyyccc'
 version '1.0-SNAPSHOT'
 
-compileJava {
-  sourceCompatibility = 1.8
-  targetCompatibility = 1.8
-}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 
 mainClassName = 'io.vertx.core.Launcher'
 
@@ -18,6 +17,8 @@ ext {
   junitVersion = '4.12'
   vertxVersion = '3.5.0'
   jacksonVersion = '2.9.0'
+  slf4jVersion = '1.7.25'
+  log4jVersion = '2.9.1'
 }
 
 def mainVerticleName = 'com.billyyccc.MainVerticle'
@@ -35,11 +36,56 @@ repositories {
 dependencies {
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-web:$vertxVersion"
-//  compileOnly("io.vertx:vertx-codegen:${vertxVersion}")
-  compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: "$jacksonVersion"
+  compile "io.vertx:vertx-mysql-postgresql-client:$vertxVersion"
+  compile "io.vertx:vertx-service-proxy:$vertxVersion"
+  compile("io.vertx:vertx-codegen:$vertxVersion")
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+
+  // Logging Dependencies
+  compile "org.slf4j:slf4j-api:$slf4jVersion"
+  compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+  compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
+  compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
+
+  // Testing Suite Dependencies
   testCompile "junit:junit:$junitVersion"
   testCompile "io.vertx:vertx-unit:$vertxVersion"
+}
 
+def generatedSrcPath = "${projectDir}/src/main/generated"
+def generatedSrcDir = file(generatedSrcPath)
+
+idea {
+  module {
+    generatedSourceDirs += generatedSrcDir
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs += generatedSrcPath
+    }
+  }
+}
+
+task generateServiceProxy(type: JavaCompile, group: 'build', description: 'Generates the Vertx service proxies') {
+  source = sourceSets.main.java
+  classpath = configurations.compile + configurations.compileOnly
+  options.compilerArgs = [
+    "-proc:only",
+    "-processor", "io.vertx.codegen.CodeGenProcessor", // vertx processor here
+    "-Acodegen.output=${generatedSrcDir.absolutePath}"
+  ]
+  destinationDir = generatedSrcDir
+}
+
+compileJava {
+  dependsOn(generateServiceProxy)
+  // specify javac arguments
+  options.compilerArgs = [
+    "-Acodetrans.output=${projectDir}/src/main"
+  ]
 }
 
 shadowJar {
@@ -52,6 +98,14 @@ shadowJar {
   }
 }
 
+clean {
+  delete += generatedSrcDir
+}
+
 run {
   args = ['run', mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$mainClassName", "--on-redeploy=$doOnChange"]
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '4.2'
 }

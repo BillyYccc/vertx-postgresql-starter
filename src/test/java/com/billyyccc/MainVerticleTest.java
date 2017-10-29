@@ -30,6 +30,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -52,6 +53,7 @@ public class MainVerticleTest {
     vertx.close(testContext.asyncAssertSuccess());
   }
 
+  @Ignore
   @Test
   public void testServer(TestContext testContext) {
     Async async = testContext.async();

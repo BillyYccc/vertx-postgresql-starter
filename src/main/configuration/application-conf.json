@@ -1,3 +1,8 @@
 {
-  "http.server.port": 8080
+  "http.server.port": 8080,
+  "postgresql.port": 5432,
+  "postgresql.maxpoolsize": 20,
+  "postgresql.database": "library",
+  "postgresql.username": "billy",
+  "postgresql.password": "abc123"
 }

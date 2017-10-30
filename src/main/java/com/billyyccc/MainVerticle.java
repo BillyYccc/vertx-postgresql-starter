@@ -25,6 +25,7 @@
 package com.billyyccc;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 
 /**
@@ -35,11 +36,25 @@ import io.vertx.core.Future;
 
 public class MainVerticle extends AbstractVerticle {
   private static final String HTTP_SERVER_VERTICLE_IDENTIFIER = "com.billyyccc.http.HttpServerVerticle";
+  private static final String PG_DATABASE_VERTICLE_IDENTIFIER = "com.billyyccc.database.BookDatabaseVerticle";
 
   @Override
-  public void start() throws Exception {
-    Future<String> httpVerticleDeployment = Future.future();
-    vertx.deployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER,
-      httpVerticleDeployment.completer());
+  public void start(Future<Void> startFuture) throws Exception {
+    Future<String> dbVerticleDeployment = Future.future();
+    vertx.deployVerticle(PG_DATABASE_VERTICLE_IDENTIFIER, new DeploymentOptions().setConfig(config()),
+      dbVerticleDeployment.completer());
+
+    dbVerticleDeployment.compose(id -> {
+      Future<String> httpVerticleDeployment = Future.future();
+      vertx.deployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER, new DeploymentOptions().setConfig(config()),
+        httpVerticleDeployment.completer());
+      return httpVerticleDeployment;
+    }).setHandler(ar -> {
+      if (ar.succeeded()) {
+        startFuture.complete();
+      } else {
+        startFuture.fail(ar.cause());
+      }
+    });
   }
 }

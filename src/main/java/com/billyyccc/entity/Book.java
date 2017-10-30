@@ -60,17 +60,17 @@ public class Book {
     BookConverter.fromJson(jsonObject, this);
   }
 
-  public JsonObject toJson() {
-    JsonObject jsonObject = new JsonObject();
-    BookConverter.toJson(this, jsonObject);
-    return jsonObject;
-  }
-
   public Book(int bookId, String title, String category, String publicationDate) {
     this.bookId = bookId;
     this.title = title;
     this.category = category;
     this.publicationDate = publicationDate;
+  }
+
+  public JsonObject toJson() {
+    JsonObject jsonObject = new JsonObject();
+    BookConverter.toJson(this, jsonObject);
+    return jsonObject;
   }
 
   public int getBookId() {
@@ -96,7 +96,6 @@ public class Book {
   public void setCategory(String category) {
     this.category = category;
   }
-
 
   public String getPublicationDate() {
     return publicationDate;

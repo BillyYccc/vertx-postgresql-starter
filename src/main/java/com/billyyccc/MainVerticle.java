@@ -25,6 +25,7 @@
 package com.billyyccc;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 
 /**
@@ -40,11 +41,12 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Future<Void> startFuture) throws Exception {
     Future<String> dbVerticleDeployment = Future.future();
-    vertx.deployVerticle(PG_DATABASE_VERTICLE_IDENTIFIER, dbVerticleDeployment.completer());
+    vertx.deployVerticle(PG_DATABASE_VERTICLE_IDENTIFIER, new DeploymentOptions().setConfig(config()),
+      dbVerticleDeployment.completer());
 
     dbVerticleDeployment.compose(id -> {
       Future<String> httpVerticleDeployment = Future.future();
-      vertx.deployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER,
+      vertx.deployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER, new DeploymentOptions().setConfig(config()),
         httpVerticleDeployment.completer());
       return httpVerticleDeployment;
     }).setHandler(ar -> {

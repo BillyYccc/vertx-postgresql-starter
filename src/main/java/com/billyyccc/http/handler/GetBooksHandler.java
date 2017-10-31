@@ -26,11 +26,7 @@ package com.billyyccc.http.handler;
 
 import com.billyyccc.entity.Book;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
-
-import java.time.LocalDate;
-import java.util.Optional;
 
 /**
  * This class is handler for getting all books or some books by conditions.

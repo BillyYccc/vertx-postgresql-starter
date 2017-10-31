@@ -27,6 +27,8 @@ package com.billyyccc.database;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.PostgreSQLClient;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.serviceproxy.ServiceBinder;
@@ -36,6 +38,7 @@ import io.vertx.serviceproxy.ServiceBinder;
  */
 
 public class BookDatabaseVerticle extends AbstractVerticle {
+  private static final String CONFIG_PG_HOST = "postgresql.host";
   private static final String CONFIG_PG_PORT = "postgresql.port";
   private static final String CONFIG_PG_MAXPOOLSIZE = "postgresql.maxpoolsize";
   private static final String CONFIG_PG_DATABASE = "postgresql.database";
@@ -44,9 +47,12 @@ public class BookDatabaseVerticle extends AbstractVerticle {
 
   private static final String CONFIG_DB_EB_QUEUE = "library.db.queue";
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseVerticle.class);
+
   @Override
   public void start(Future<Void> startFuture) throws Exception {
     JsonObject pgClientOptions = new JsonObject()
+      .put("host", config().getString(CONFIG_PG_HOST, "127.0.0.1"))
       .put("port", config().getInteger(CONFIG_PG_PORT, 5432))
       .put("maxPoolSize", config().getInteger(CONFIG_PG_MAXPOOLSIZE))
       .put("database", config().getString(CONFIG_PG_DATABASE))
@@ -61,8 +67,10 @@ public class BookDatabaseVerticle extends AbstractVerticle {
         new ServiceBinder(vertx)
           .setAddress(CONFIG_DB_EB_QUEUE)
           .register(BookDatabaseService.class, result.result());
+        LOGGER.info("PostgreSQL database service is successfully established");
         startFuture.complete();
       } else {
+        LOGGER.error("PostgreSQL database service failed to be established", result.cause());
         startFuture.fail(result.cause());
       }
     });

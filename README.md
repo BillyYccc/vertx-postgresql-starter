@@ -11,6 +11,7 @@ It leverages [Gradle](https://gradle.org/) to build and [Docker](https://www.doc
 
 * JDK 8+
 * Docker
+* Docker-compose
 
 ## Build
 
@@ -24,8 +25,6 @@ After a successful build, a fat jar file is generated in directory [build/libs]
 
 ## Deployment
 
-##### 1. Build a Docker image
-`docker build -t vertx-postgresql-starter .`
+##### Just one-key deploy with docker-compose
 
-##### 2. Start a Docker container
-`docker run -t -i -p 8080:8080 vertx-postgresql-starter`
+`docker-compose up`

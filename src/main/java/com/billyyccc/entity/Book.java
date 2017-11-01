@@ -34,9 +34,9 @@ import io.vertx.core.json.JsonObject;
  */
 
 @DataObject(generateConverter = true)
-@JsonPropertyOrder({"bookid", "title", "category", "publicationDate"})
+@JsonPropertyOrder({"id", "title", "category", "publicationdate"})
 public class Book {
-  @JsonProperty("bookid")
+  @JsonProperty("id")
   private int bookId;
   @JsonProperty("title")
   private String title;
@@ -128,7 +128,7 @@ public class Book {
   @Override
   public String toString() {
     return "{\n" +
-      "    \"bookid\": " + this.bookId + ",\n" +
+      "    \"id\": " + this.bookId + ",\n" +
       "    \"title\": \"" + this.title + "\",\n" +
       "    \"category\": \"" + this.category + "\",\n" +
       "    \"publicationdate\": \"" + this.publicationDate + "\"\n" +

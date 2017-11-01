@@ -24,6 +24,7 @@
 
 package com.billyyccc.http.handler;
 
+import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
@@ -36,18 +37,29 @@ import io.vertx.ext.web.RoutingContext;
  */
 
 public class AddBookHandler implements Handler<RoutingContext> {
+  private BookDatabaseService bookDatabaseService;
+
+  public AddBookHandler(BookDatabaseService bookDatabaseService) {
+    this.bookDatabaseService = bookDatabaseService;
+  }
+
   @Override
   public void handle(RoutingContext routingContext) {
-
+    //TODO need some Validation and error Handling
     Book book = Json.decodeValue(routingContext.getBodyAsString("UTF-8"), Book.class);
 
-    //TODO need database service
-    //dbService.addNewBook(book);
+    routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
+    bookDatabaseService.addNewBook(book, res -> {
+      if (res.succeeded()) {
+        routingContext.response().setStatusCode(200)
+          .end(book.toString());
+      } else {
+        routingContext.response().setStatusCode(400)
+          .end();
+      }
+    });
 
-    routingContext.response().setStatusCode(200)
-      .putHeader("content-type", "application/json; charset=UTF-8")
-      .end(book.toString());
 
   }
 }

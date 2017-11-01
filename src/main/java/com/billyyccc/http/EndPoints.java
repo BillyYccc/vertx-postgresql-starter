@@ -30,13 +30,13 @@ package com.billyyccc.http;
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
-final class ApiRoutes {
+final class EndPoints {
   protected static final String GET_BOOKS = "/books";
   protected static final String ADD_NEW_BOOK = "/books";
   protected static final String GET_BOOK_BY_ID = "/books/:bookid";
   protected static final String DELETE_BOOK = "/books/:bookid";
 
-  private ApiRoutes() {
+  private EndPoints() {
     // No instance of this class allowed
   }
 }

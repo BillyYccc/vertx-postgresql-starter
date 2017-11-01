@@ -37,6 +37,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
+import static com.billyyccc.http.EndPoints.*;
+
 /**
  * HttpServer Verticle deployed to provide REST services.
  *
@@ -60,10 +62,10 @@ public class HttpServerVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
 
     router.route().handler(BodyHandler.create());
-    router.get(ApiRoutes.GET_BOOKS).handler(new GetBooksHandler());
-    router.post(ApiRoutes.ADD_NEW_BOOK).handler(new AddBookHandler());
-    router.delete(ApiRoutes.DELETE_BOOK).handler(new DeleteBookHandler());
-    router.get(ApiRoutes.GET_BOOK_BY_ID).handler(new GetBookHandler());
+    router.get(GET_BOOKS).handler(new GetBooksHandler(bookDatabaseService));
+    router.post(ADD_NEW_BOOK).handler(new AddBookHandler(bookDatabaseService));
+    router.delete(DELETE_BOOK).handler(new DeleteBookHandler(bookDatabaseService));
+    router.get(GET_BOOK_BY_ID).handler(new GetBookHandler(bookDatabaseService));
 
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)

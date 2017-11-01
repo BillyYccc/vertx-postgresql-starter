@@ -24,7 +24,9 @@
 
 package com.billyyccc.http.handler;
 
+import com.billyyccc.database.BookDatabaseService;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -34,16 +36,33 @@ import io.vertx.ext.web.RoutingContext;
  */
 
 public class GetBookHandler implements Handler<RoutingContext> {
+  private BookDatabaseService bookDatabaseService;
+
+  public GetBookHandler(BookDatabaseService bookDatabaseService) {
+    this.bookDatabaseService = bookDatabaseService;
+  }
+
   @Override
   public void handle(RoutingContext routingContext) {
-//    int bookId = Integer.valueOf(routingContext.pathParam("bookid"));
+    //TODO need some Validation and error Handling
+    int bookId = Integer.valueOf(routingContext.pathParam("bookid"));
 
-    //TODO need database service
-    //Book book = dbService.getBookById(bookId);
+    routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
-    routingContext.response().setStatusCode(200)
-      .putHeader("content-type", "application/json; charset=UTF-8")
-      .end();
-
+    bookDatabaseService.getBookById(bookId, res -> {
+      if (res.succeeded()) {
+        JsonObject dbResponse = res.result();
+        if (dbResponse.isEmpty()) {
+          routingContext.response().setStatusCode(404)
+            .end();
+        } else {
+          routingContext.response().setStatusCode(200)
+            .end(dbResponse.toString());
+        }
+      } else {
+        routingContext.response().setStatusCode(400)
+          .end();
+      }
+    });
   }
 }

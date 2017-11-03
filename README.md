@@ -33,7 +33,7 @@ After a successful build, a fat jar file is generated in directory `$PROJECT_NAM
 
 ##### Just one-key deploy with docker-compose
 
-`docker-compose up`
+`docker-compose up --build`
 
 ## Project
 

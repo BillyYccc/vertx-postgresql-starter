@@ -17,4 +17,5 @@ COPY src/main/configuration/$HTTP_SERVER_CONFIG $VERTICLE_HOME/
 # Launch the verticle
 WORKDIR $VERTICLE_HOME
 ENTRYPOINT ["sh", "-c"]
-CMD ["exec java -jar $VERTICLE_FILE -conf $HTTP_SERVER_CONFIG"]
+CMD ["exec java -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+ -jar $VERTICLE_FILE -conf $HTTP_SERVER_CONFIG"]

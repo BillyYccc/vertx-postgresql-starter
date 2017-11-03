@@ -18,6 +18,11 @@ gen/
 out/
 build/
 
+# Visual Studio Code
+.classpath
+.project
+.settings/
+
 # IntelliJ IDEA
 .idea/
 *.iml

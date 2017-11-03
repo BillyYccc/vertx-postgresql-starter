@@ -42,6 +42,7 @@ import io.vertx.ext.sql.SQLConnection;
 
 public class BookDatabaseServiceImpl implements BookDatabaseService {
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
+
   private final SQLClient dbClient;
 
   public BookDatabaseServiceImpl(SQLClient dbClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {

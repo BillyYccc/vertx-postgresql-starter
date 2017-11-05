@@ -24,6 +24,7 @@
 
 package com.billyyccc.http.handler;
 
+import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
@@ -35,20 +36,43 @@ import io.vertx.ext.web.RoutingContext;
  */
 
 public class GetBooksHandler implements Handler<RoutingContext> {
+  private BookDatabaseService bookDatabaseService;
+
+  public GetBooksHandler(BookDatabaseService bookDatabaseService) {
+    this.bookDatabaseService = bookDatabaseService;
+  }
+
   @Override
   public void handle(RoutingContext routingContext) {
+    //TODO need some Validation and error Handling
     // Get all the query parameters to an object
     Book book = new Book();
     book.setTitle(routingContext.queryParams().get("title"));
     book.setCategory(routingContext.queryParams().get("category"));
     book.setPublicationDate(routingContext.queryParams().get("publicationdate"));
 
-    // TODO need database service
-    // List<Book> booksList = dbService.getBooksByConditions(book);
+    routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
-    routingContext.response().setStatusCode(200)
-      .putHeader("content-type", "application/json; charset=UTF-8")
-      .end();
-//    JsonArray jsonArray = new JsonArray();
+    bookDatabaseService.getBooks(book, res -> {
+      if (res.succeeded()) {
+        switch (res.result().size()) {
+          case 0:
+            routingContext.response().setStatusCode(404)
+              .end(res.result().toString());
+            break;
+          case 1:
+            routingContext.response().setStatusCode(200)
+              .end(res.result().getJsonObject(0).toString());
+            break;
+          default:
+            routingContext.response().setStatusCode(200)
+              .end(res.result().toString());
+            break;
+        }
+      } else {
+        routingContext.response().setStatusCode(400)
+          .end();
+      }
+    });
   }
 }

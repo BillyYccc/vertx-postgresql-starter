@@ -24,6 +24,7 @@
 
 package com.billyyccc.http.handler;
 
+import com.billyyccc.database.BookDatabaseService;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 
@@ -34,15 +35,27 @@ import io.vertx.ext.web.RoutingContext;
  */
 
 public class DeleteBookHandler implements Handler<RoutingContext> {
+  private BookDatabaseService bookDatabaseService;
+
+  public DeleteBookHandler(BookDatabaseService bookDatabaseService) {
+    this.bookDatabaseService = bookDatabaseService;
+  }
+
   @Override
   public void handle(RoutingContext routingContext) {
+    //TODO need some Validation and error Handling
     int bookId = Integer.valueOf(routingContext.pathParam("bookid"));
 
-    //TODO need database service
-    //dbService.deleteBookById(bookId);
+    routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
-    routingContext.response().setStatusCode(200)
-      .putHeader("content-type", "application/json; charset=UTF-8")
-      .end();
+    bookDatabaseService.deleteBookById(bookId, res -> {
+      if (res.succeeded()) {
+        routingContext.response().setStatusCode(200)
+          .end();
+      } else {
+        routingContext.response().setStatusCode(400)
+          .end();
+      }
+    });
   }
 }

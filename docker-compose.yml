@@ -16,3 +16,6 @@ services:
       POSTGRES_USER: billy
       POSTGRES_PASSWORD: abc123
       POSTGRES_DB: library
+    volumes:
+      - ./src/main/resources/database/create_table.sql:/docker-entrypoint-initdb.d/v10create_table.sql
+      - ./src/main/resources/database/init_data.sql:/docker-entrypoint-initdb.d/v20init_data.sql

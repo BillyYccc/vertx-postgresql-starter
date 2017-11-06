@@ -47,9 +47,11 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM BOOK WHERE ID = ?";
   private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM BOOK WHERE ID = ?";
   private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM BOOK WHERE TRUE";
-  private static final String SQL_CONDITION_BY_TITLE = "AND WHERE TITLE = ?";
-  private static final String SQL_CONDITION_BY_CATEGORY = "AND WHERE CATEGORY = ?";
-  private static final String SQL_CONDITION_BY_PUBLICATIONDATE = "AND WHERE PUBLICATIONDATE = ?";
+  private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO BOOK VALUES(?, ?, ?, ?) " +
+    "ON CONFLICT(ID) DO UPDATE SET TITLE = ?, CATEGORY = ?, PUBLICATIONDATE = ?";
+  private static final String SQL_CONDITION_BY_TITLE = " AND TITLE = ?";
+  private static final String SQL_CONDITION_BY_CATEGORY = " AND CATEGORY = ?";
+  private static final String SQL_CONDITION_BY_PUBLICATIONDATE = " AND PUBLICATIONDATE = ?";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 
@@ -71,7 +73,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService addNewBook(Book book, Handler<AsyncResult<Void>> resultHandler) {
-    JsonArray params = new JsonArray().add(book.getBookId())
+    JsonArray params = new JsonArray().add(book.getId())
       .add(book.getTitle())
       .add(book.getCategory())
       .add(book.getPublicationDate());
@@ -144,6 +146,27 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
       } else {
         JsonArray books = new JsonArray(ar.result().getRows());
         resultHandler.handle(Future.succeededFuture(books));
+      }
+    });
+    return this;
+  }
+
+  @Override
+  public BookDatabaseService upsertBookById(Book book, Handler<AsyncResult<Void>> resultHandler) {
+    JsonArray params = new JsonArray()
+      .add(book.getId())
+      .add(book.getTitle())
+      .add(book.getCategory())
+      .add(book.getPublicationDate())
+      .add(book.getTitle())
+      .add(book.getCategory())
+      .add(book.getPublicationDate());
+    dbClient.updateWithParams(SQL_UPSERT_BOOK_BY_ID, params, ar -> {
+      if (ar.failed()) {
+        LOGGER.error("Failed to upsert the book by id " + book.getId(), ar.cause());
+        resultHandler.handle(Future.failedFuture(ar.cause()));
+      } else {
+        resultHandler.handle(Future.succeededFuture());
       }
     });
     return this;

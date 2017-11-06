@@ -37,7 +37,7 @@ import io.vertx.core.json.JsonObject;
 @JsonPropertyOrder({"id", "title", "category", "publicationdate"})
 public class Book {
   @JsonProperty("id")
-  private int bookId;
+  private int id;
   @JsonProperty("title")
   private String title;
   @JsonProperty("category")
@@ -50,7 +50,7 @@ public class Book {
   }
 
   public Book(Book other) {
-    this.bookId = other.bookId;
+    this.id = other.id;
     this.title = other.title;
     this.category = other.category;
     this.publicationDate = other.publicationDate;
@@ -60,8 +60,8 @@ public class Book {
     BookConverter.fromJson(jsonObject, this);
   }
 
-  public Book(int bookId, String title, String category, String publicationDate) {
-    this.bookId = bookId;
+  public Book(int id, String title, String category, String publicationDate) {
+    this.id = id;
     this.title = title;
     this.category = category;
     this.publicationDate = publicationDate;
@@ -73,12 +73,12 @@ public class Book {
     return jsonObject;
   }
 
-  public int getBookId() {
-    return bookId;
+  public int getId() {
+    return id;
   }
 
-  public void setBookId(int bookId) {
-    this.bookId = bookId;
+  public void setId(int id) {
+    this.id = id;
   }
 
   public String getTitle() {
@@ -109,7 +109,7 @@ public class Book {
   public boolean equals(Object obj) {
     if (!(obj instanceof Book)) return false;
     Book book = (Book) obj;
-    return this.bookId == book.bookId &&
+    return this.id == book.id &&
       this.title.equals(book.title) &&
       this.category.equals(book.category) &&
       this.publicationDate.equals(book.publicationDate);
@@ -118,7 +118,7 @@ public class Book {
   @Override
   public int hashCode() {
     int result = super.hashCode();
-    result = 31 * result + bookId;
+    result = 31 * result + id;
     result = 31 * result + (title != null ? title.hashCode() : 0);
     result = 31 * result + (category != null ? category.hashCode() : 0);
     result = 31 * result + (publicationDate != null ? publicationDate.hashCode() : 0);
@@ -128,7 +128,7 @@ public class Book {
   @Override
   public String toString() {
     return "{\n" +
-      "    \"id\": " + this.bookId + ",\n" +
+      "    \"id\": " + this.id + ",\n" +
       "    \"title\": \"" + this.title + "\",\n" +
       "    \"category\": \"" + this.category + "\",\n" +
       "    \"publicationdate\": \"" + this.publicationDate + "\"\n" +

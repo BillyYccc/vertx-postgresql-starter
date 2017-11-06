@@ -59,13 +59,34 @@ Return the specific Book by id.
 
 `POST /books/:id`
 
+Request Body:
+```Json
+{
+        "id": 1,
+        "title": "Thinking in java",
+        "category": "java",
+        "publicationdate": "2006-02-20"
+}
+```
+
 Return the new added Book
 
 ##### Update an book or create one if not exists
 
 `PUT /books/:id`
 
-Return the update(or create) Book
+Request Body:
+```Json
+{
+        "title": "Thinking in java",
+        "category": "java",
+        "publicationdate": "2006-02-20"
+}
+```
+
+If the book with the id does not exist, return the created book
+If the book with the id exists, return the updated book
+This API can not change id of any existed book
 
 ##### Delete an existing book
 

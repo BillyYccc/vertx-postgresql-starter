@@ -152,9 +152,9 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   }
 
   @Override
-  public BookDatabaseService upsertBookById(Book book, Handler<AsyncResult<Void>> resultHandler) {
+  public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
     JsonArray params = new JsonArray()
-      .add(book.getId())
+      .add(id)
       .add(book.getTitle())
       .add(book.getCategory())
       .add(book.getPublicationDate())

@@ -63,4 +63,7 @@ public interface BookDatabaseService {
 
   @Fluent
   BookDatabaseService getBooks(Book book, Handler<AsyncResult<JsonArray>> resultHandler);
+
+  @Fluent
+  BookDatabaseService upsertBookById(Book book, Handler<AsyncResult<Void>> resultHandler);
 }

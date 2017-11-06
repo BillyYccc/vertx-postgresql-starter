@@ -8,7 +8,7 @@ This project provides an easy example of a CRUD REST service. The HTTP header sh
 
 ```Json
 {
-    "bookid": 1,
+    "id": 1,
     "title": "Novel Book",
     "category": "novel",
     "publicationdate": "2010-01-01",
@@ -19,13 +19,13 @@ This project provides an easy example of a CRUD REST service. The HTTP header sh
 ```Json
 [
     {
-        "bookid": 1,
+        "id": 1,
         "title": "Book 1",
         "category": "science",
         "publicationdate": "2016-01-01"
     },
     {
-        "bookid": 2,
+        "id": 2,
         "title": "Book 2",
         "category": "literature",
         "publicationdate": "2017-02-01"

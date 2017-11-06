@@ -29,6 +29,7 @@ import com.billyyccc.http.handler.AddBookHandler;
 import com.billyyccc.http.handler.DeleteBookHandler;
 import com.billyyccc.http.handler.GetBookHandler;
 import com.billyyccc.http.handler.GetBooksHandler;
+import com.billyyccc.http.handler.UpdateBookHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
@@ -64,8 +65,9 @@ public class HttpServerVerticle extends AbstractVerticle {
     router.route().handler(BodyHandler.create());
     router.get(GET_BOOKS).handler(new GetBooksHandler(bookDatabaseService));
     router.post(ADD_NEW_BOOK).handler(new AddBookHandler(bookDatabaseService));
-    router.delete(DELETE_BOOK).handler(new DeleteBookHandler(bookDatabaseService));
+    router.delete(DELETE_BOOK_BY_ID).handler(new DeleteBookHandler(bookDatabaseService));
     router.get(GET_BOOK_BY_ID).handler(new GetBookHandler(bookDatabaseService));
+    router.put(UPDATE_BOOK_BY_ID).handler(new UpdateBookHandler(bookDatabaseService));
 
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)

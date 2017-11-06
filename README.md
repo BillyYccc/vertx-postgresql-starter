@@ -45,3 +45,5 @@ The project takes an easy example with an mini library, the REST API specificati
 The Domain Logic is organized with [Transaction Script](https://martinfowler.com/eaaCatalog/transactionScript.html).
 
 ##### Database Degisn
+
+![database](database.png)

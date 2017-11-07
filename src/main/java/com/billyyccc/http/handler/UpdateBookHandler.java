@@ -30,7 +30,7 @@ public class UpdateBookHandler implements Handler<RoutingContext> {
       if (res.succeeded()) {
         routingContext.response().setStatusCode(200)
           .end(new JsonObject()
-            .put("id",bookId)
+            .put("id", bookId)
             .put("title", book.getTitle())
             .put("category", book.getCategory())
             .put("publicationdate", book.getPublicationDate())

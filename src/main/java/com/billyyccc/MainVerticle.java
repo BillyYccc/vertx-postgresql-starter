@@ -24,9 +24,10 @@
 
 package com.billyyccc;
 
-import io.vertx.core.AbstractVerticle;
+import io.reactivex.Single;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
+import io.vertx.reactivex.core.AbstractVerticle;
 
 /**
  * MainVerticle class to deploy the verticles needed.
@@ -38,23 +39,17 @@ public class MainVerticle extends AbstractVerticle {
   private static final String HTTP_SERVER_VERTICLE_IDENTIFIER = "com.billyyccc.http.HttpServerVerticle";
   private static final String PG_DATABASE_VERTICLE_IDENTIFIER = "com.billyyccc.database.BookDatabaseVerticle";
 
+
   @Override
   public void start(Future<Void> startFuture) throws Exception {
-    Future<String> dbVerticleDeployment = Future.future();
-    vertx.deployVerticle(PG_DATABASE_VERTICLE_IDENTIFIER, new DeploymentOptions().setConfig(config()),
-      dbVerticleDeployment.completer());
+    Single<String> dbVerticleDeployment = vertx.rxDeployVerticle(PG_DATABASE_VERTICLE_IDENTIFIER,
+      new DeploymentOptions().setConfig(config()));
 
-    dbVerticleDeployment.compose(id -> {
-      Future<String> httpVerticleDeployment = Future.future();
-      vertx.deployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER, new DeploymentOptions().setConfig(config()),
-        httpVerticleDeployment.completer());
-      return httpVerticleDeployment;
-    }).setHandler(ar -> {
-      if (ar.succeeded()) {
-        startFuture.complete();
-      } else {
-        startFuture.fail(ar.cause());
-      }
-    });
+    dbVerticleDeployment
+      .flatMap(deploymentId -> vertx.rxDeployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER,
+        new DeploymentOptions().setConfig(config())))
+      .subscribe(deploymentId -> startFuture.complete(),
+        startFuture::fail);
   }
 }
+

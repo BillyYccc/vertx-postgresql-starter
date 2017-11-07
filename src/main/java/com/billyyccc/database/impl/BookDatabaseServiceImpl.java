@@ -66,13 +66,13 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   private final PgPool pgConnectionPool;
 
   public BookDatabaseServiceImpl(PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
-    pgConnectionPool = pgClient.createPool(new PgPoolOptions()
-      .setMaxSize(20));
+    pgConnectionPool = pgClient.createPool(new PgPoolOptions().setMaxSize(20));
     this.pgConnectionPool.getConnection(ar -> {
       if (ar.failed()) {
         LOGGER.error("Can not open a database connection", ar.cause());
         resultHandler.handle(Future.failedFuture(ar.cause()));
       } else {
+        ar.result().close();
         resultHandler.handle(Future.succeededFuture(this));
       }
     });

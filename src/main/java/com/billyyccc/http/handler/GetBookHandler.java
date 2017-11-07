@@ -24,10 +24,9 @@
 
 package com.billyyccc.http.handler;
 
-import com.billyyccc.database.BookDatabaseService;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.RoutingContext;
 
 /**
  * This class is handler for getting the specified book by bookId.
@@ -49,20 +48,21 @@ public class GetBookHandler implements Handler<RoutingContext> {
 
     routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
-    bookDatabaseService.getBookById(bookId, res -> {
-      if (res.succeeded()) {
-        JsonObject dbResponse = res.result();
-        if (dbResponse.isEmpty()) {
-          routingContext.response().setStatusCode(404)
+    bookDatabaseService.rxGetBookById(bookId)
+      .subscribe(
+        dbResponse -> {
+          if (dbResponse.isEmpty()) {
+            routingContext.response().setStatusCode(404)
+              .end();
+          } else {
+            routingContext.response().setStatusCode(200)
+              .end(dbResponse.toString());
+          }
+        },
+        throwable -> {
+          routingContext.response().setStatusCode(400)
             .end();
-        } else {
-          routingContext.response().setStatusCode(200)
-            .end(dbResponse.toString());
         }
-      } else {
-        routingContext.response().setStatusCode(400)
-          .end();
-      }
-    });
+      );
   }
 }

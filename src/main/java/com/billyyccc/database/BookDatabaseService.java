@@ -28,6 +28,7 @@ import com.billyyccc.database.impl.BookDatabaseServiceImpl;
 import com.billyyccc.entity.Book;
 import com.julienviet.pgclient.PgClient;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
@@ -35,7 +36,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.sql.SQLClient;
 
 /**
  * @author Billy Yuan <billy112487983@gmail.com>
@@ -45,12 +45,14 @@ import io.vertx.ext.sql.SQLClient;
 @VertxGen
 public interface BookDatabaseService {
 
+  @GenIgnore
   static BookDatabaseService create(PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
     return new BookDatabaseServiceImpl(pgClient, resultHandler);
   }
 
-  static BookDatabaseService createProxy(Vertx vertx, String address) {
-    return new BookDatabaseServiceVertxEBProxy(vertx, address);
+  @GenIgnore
+  static com.billyyccc.database.reactivex.BookDatabaseService createProxy(Vertx vertx, String address) {
+    return new com.billyyccc.database.reactivex.BookDatabaseService(new BookDatabaseServiceVertxEBProxy(vertx, address));
   }
 
   @Fluent

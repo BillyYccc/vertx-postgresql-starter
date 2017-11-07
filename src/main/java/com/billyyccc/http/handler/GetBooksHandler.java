@@ -24,10 +24,10 @@
 
 package com.billyyccc.http.handler;
 
-import com.billyyccc.database.BookDatabaseService;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.RoutingContext;
 
 /**
  * This class is handler for getting all books or some books by conditions.
@@ -53,26 +53,28 @@ public class GetBooksHandler implements Handler<RoutingContext> {
 
     routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
-    bookDatabaseService.getBooks(book, res -> {
-      if (res.succeeded()) {
-        switch (res.result().size()) {
-          case 0:
-            routingContext.response().setStatusCode(404)
-              .end();
-            break;
-          case 1:
-            routingContext.response().setStatusCode(200)
-              .end(res.result().getJsonObject(0).toString());
-            break;
-          default:
-            routingContext.response().setStatusCode(200)
-              .end(res.result().toString());
-            break;
+    bookDatabaseService.rxGetBooks(book)
+      .subscribe(
+        dbResponse -> {
+          switch (dbResponse.size()) {
+            case 0:
+              routingContext.response().setStatusCode(404)
+                .end();
+              break;
+            case 1:
+              routingContext.response().setStatusCode(200)
+                .end(dbResponse.getJsonObject(0).toString());
+              break;
+            default:
+              routingContext.response().setStatusCode(200)
+                .end(dbResponse.toString());
+              break;
+          }
+        },
+        throwable -> {
+          routingContext.response().setStatusCode(400)
+            .end();
         }
-      } else {
-        routingContext.response().setStatusCode(400)
-          .end();
-      }
-    });
+      );
   }
 }

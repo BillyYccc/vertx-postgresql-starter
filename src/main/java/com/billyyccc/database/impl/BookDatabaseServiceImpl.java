@@ -26,6 +26,13 @@ package com.billyyccc.database.impl;
 
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
+import com.julienviet.pgclient.PgClient;
+import com.julienviet.pgclient.PgConnection;
+import com.julienviet.pgclient.PgPool;
+import com.julienviet.pgclient.PgPoolOptions;
+import com.julienviet.pgclient.PgPreparedStatement;
+import com.julienviet.pgclient.PgQuery;
+import com.julienviet.pgclient.PgUpdate;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -33,9 +40,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.sql.SQLClient;
-import io.vertx.ext.sql.SQLConnection;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -43,29 +51,28 @@ import java.util.Optional;
  */
 
 public class BookDatabaseServiceImpl implements BookDatabaseService {
-  private static final String SQL_ADD_NEW_BOOK = "INSERT INTO BOOK VALUES (?, ?, ?, ?)";
-  private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM BOOK WHERE ID = ?";
-  private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM BOOK WHERE ID = ?";
+  private static final String SQL_ADD_NEW_BOOK = "INSERT INTO BOOK VALUES ($1, $2, $3, $4)";
+  private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM BOOK WHERE ID = $1";
+  private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM BOOK WHERE ID = $1";
+  private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO BOOK VALUES($1, $2, $3, $4) " +
+    "ON CONFLICT(ID) DO UPDATE SET TITLE = $5, CATEGORY = $6, PUBLICATIONDATE = $7";
   private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM BOOK WHERE TRUE";
-  private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO BOOK VALUES(?, ?, ?, ?) " +
-    "ON CONFLICT(ID) DO UPDATE SET TITLE = ?, CATEGORY = ?, PUBLICATIONDATE = ?";
-  private static final String SQL_CONDITION_BY_TITLE = " AND TITLE = ?";
-  private static final String SQL_CONDITION_BY_CATEGORY = " AND CATEGORY = ?";
-  private static final String SQL_CONDITION_BY_PUBLICATIONDATE = " AND PUBLICATIONDATE = ?";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND TITLE = $";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND CATEGORY = $";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATIONDATE = " AND PUBLICATIONDATE = $";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 
-  private final SQLClient dbClient;
+  private final PgPool pgConnectionPool;
 
-  public BookDatabaseServiceImpl(SQLClient dbClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
-    this.dbClient = dbClient;
-    this.dbClient.getConnection(ar -> {
+  public BookDatabaseServiceImpl(PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
+    pgConnectionPool = pgClient.createPool(new PgPoolOptions()
+      .setMaxSize(20));
+    this.pgConnectionPool.getConnection(ar -> {
       if (ar.failed()) {
         LOGGER.error("Can not open a database connection", ar.cause());
         resultHandler.handle(Future.failedFuture(ar.cause()));
       } else {
-        SQLConnection dbConnection = ar.result();
-        dbConnection.close();
         resultHandler.handle(Future.succeededFuture(this));
       }
     });
@@ -73,16 +80,23 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService addNewBook(Book book, Handler<AsyncResult<Void>> resultHandler) {
-    JsonArray params = new JsonArray().add(book.getId())
-      .add(book.getTitle())
-      .add(book.getCategory())
-      .add(book.getPublicationDate());
-    dbClient.updateWithParams(SQL_ADD_NEW_BOOK, params, ar -> {
-      if (ar.failed()) {
-        LOGGER.error("Failed to add a new book into database", ar.cause());
-        resultHandler.handle(Future.failedFuture(ar.cause()));
+    pgConnectionPool.getConnection(res -> {
+      if (res.succeeded()) {
+        PgConnection pgConnection = res.result();
+        PgPreparedStatement preparedStatement = pgConnection.prepare(SQL_ADD_NEW_BOOK);
+        PgUpdate update = preparedStatement.update(Arrays.asList(book.getId(), book.getTitle(), book.getCategory(), book.getPublicationDate()));
+        update.execute(ar -> {
+          if (ar.failed()) {
+            LOGGER.error("Failed to add a new book into database", ar.cause());
+            resultHandler.handle(Future.failedFuture(ar.cause()));
+          } else {
+            resultHandler.handle(Future.succeededFuture());
+          }
+          pgConnection.close();
+        });
       } else {
-        resultHandler.handle(Future.succeededFuture());
+        LOGGER.error("Failed to get a connection to database", res.cause());
+        resultHandler.handle(Future.failedFuture(res.cause()));
       }
     });
     return this;
@@ -90,13 +104,23 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService deleteBookById(int id, Handler<AsyncResult<Void>> resultHandler) {
-    JsonArray params = new JsonArray().add(id);
-    dbClient.updateWithParams(SQL_DELETE_BOOK_BY_ID, params, ar -> {
-      if (ar.failed()) {
-        LOGGER.error("Failed to delete the book by id " + id, ar.cause());
-        resultHandler.handle(Future.failedFuture(ar.cause()));
+    pgConnectionPool.getConnection(res -> {
+      if (res.succeeded()) {
+        PgConnection pgConnection = res.result();
+        PgPreparedStatement preparedStatement = pgConnection.prepare(SQL_DELETE_BOOK_BY_ID);
+        PgUpdate update = preparedStatement.update(id);
+        update.execute(ar -> {
+          if (ar.failed()) {
+            LOGGER.error("Failed to delete the book by id " + id, ar.cause());
+            resultHandler.handle(Future.failedFuture(ar.cause()));
+          } else {
+            resultHandler.handle(Future.succeededFuture());
+          }
+          pgConnection.close();
+        });
       } else {
-        resultHandler.handle(Future.succeededFuture());
+        LOGGER.error("Failed to get a connection to database", res.cause());
+        resultHandler.handle(Future.failedFuture(res.cause()));
       }
     });
     return this;
@@ -104,14 +128,24 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
-    JsonArray params = new JsonArray().add(id);
-    dbClient.queryWithParams(SQL_FIND_BOOK_BY_ID, params, ar -> {
-      if (ar.failed()) {
-        LOGGER.error("Failed to get the book by id " + id, ar.cause());
-        resultHandler.handle(Future.failedFuture(ar.cause()));
+    pgConnectionPool.getConnection(res -> {
+      if (res.succeeded()) {
+        PgConnection pgConnection = res.result();
+        PgPreparedStatement preparedStatement = pgConnection.prepare(SQL_FIND_BOOK_BY_ID);
+        PgQuery query = preparedStatement.query(id);
+        query.execute(ar -> {
+          if (ar.failed()) {
+            LOGGER.error("Failed to get the book by id " + id, ar.cause());
+            resultHandler.handle(Future.failedFuture(ar.cause()));
+          } else {
+            JsonObject resultRow = ar.result().getRows().get(0);
+            resultHandler.handle(Future.succeededFuture(resultRow));
+          }
+          pgConnection.close();
+        });
       } else {
-        JsonObject resultRow = ar.result().getRows().get(0);
-        resultHandler.handle(Future.succeededFuture(resultRow));
+        LOGGER.error("Failed to get a connection to database", res.cause());
+        resultHandler.handle(Future.failedFuture(res.cause()));
       }
     });
     return this;
@@ -124,28 +158,47 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     Optional<String> publicationDate = Optional.ofNullable(book.getPublicationDate());
 
     // Concat the SQL by conditions
+    // TODO the logic is not so good
+    int condition_count = 1;
     String dynamicSql = SQL_FIND_ALL_BOOKS;
-    JsonArray params = new JsonArray();
+    List<Object> params = new LinkedList<>();
     if (title.isPresent()) {
-      dynamicSql += SQL_CONDITION_BY_TITLE;
+      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_TITLE;
+      dynamicSql += condition_count;
+      condition_count++;
       params.add(title.get());
     }
     if (category.isPresent()) {
-      dynamicSql += SQL_CONDITION_BY_CATEGORY;
+      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_CATEGORY;
+      dynamicSql += condition_count;
+      condition_count++;
       params.add(category.get());
     }
     if (publicationDate.isPresent()) {
-      dynamicSql += SQL_CONDITION_BY_PUBLICATIONDATE;
+      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATIONDATE;
+      dynamicSql += condition_count;
       params.add(publicationDate.get());
     }
-    dbClient.queryWithParams(dynamicSql, params, ar -> {
-      if (ar.failed()) {
-        LOGGER.error("Failed to get the filtered books by the following conditions"
-          + params.toString(), ar.cause());
-        resultHandler.handle(Future.failedFuture(ar.cause()));
+    final String finalDynamicSql = dynamicSql;
+    pgConnectionPool.getConnection(res -> {
+      if (res.succeeded()) {
+        PgConnection pgConnection = res.result();
+        PgPreparedStatement preparedStatement = pgConnection.prepare(finalDynamicSql);
+        PgQuery query = preparedStatement.query(params);
+        query.execute(ar -> {
+          if (ar.failed()) {
+            LOGGER.error("Failed to get the filtered books by the following conditions"
+              + params.toString(), ar.cause());
+            resultHandler.handle(Future.failedFuture(ar.cause()));
+          } else {
+            JsonArray books = new JsonArray(ar.result().getRows());
+            resultHandler.handle(Future.succeededFuture(books));
+          }
+          pgConnection.close();
+        });
       } else {
-        JsonArray books = new JsonArray(ar.result().getRows());
-        resultHandler.handle(Future.succeededFuture(books));
+        LOGGER.error("Failed to get a connection to database", res.cause());
+        resultHandler.handle(Future.failedFuture(res.cause()));
       }
     });
     return this;
@@ -153,20 +206,32 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
-    JsonArray params = new JsonArray()
-      .add(id)
-      .add(book.getTitle())
-      .add(book.getCategory())
-      .add(book.getPublicationDate())
-      .add(book.getTitle())
-      .add(book.getCategory())
-      .add(book.getPublicationDate());
-    dbClient.updateWithParams(SQL_UPSERT_BOOK_BY_ID, params, ar -> {
-      if (ar.failed()) {
-        LOGGER.error("Failed to upsert the book by id " + book.getId(), ar.cause());
-        resultHandler.handle(Future.failedFuture(ar.cause()));
+    List<Object> params = new LinkedList<>();
+    params.add(id);
+    params.add(book.getTitle());
+    params.add(book.getCategory());
+    params.add(book.getPublicationDate());
+    params.add(book.getTitle());
+    params.add(book.getCategory());
+    params.add(book.getPublicationDate());
+
+    pgConnectionPool.getConnection(res -> {
+      if (res.succeeded()) {
+        PgConnection pgConnection = res.result();
+        PgPreparedStatement preparedStatement = pgConnection.prepare(SQL_UPSERT_BOOK_BY_ID);
+        PgUpdate update = preparedStatement.update(params);
+        update.execute(ar -> {
+          if (ar.failed()) {
+            LOGGER.error("Failed to upsert the book by id " + book.getId(), ar.cause());
+            resultHandler.handle(Future.failedFuture(ar.cause()));
+          } else {
+            resultHandler.handle(Future.succeededFuture());
+          }
+          pgConnection.close();
+        });
       } else {
-        resultHandler.handle(Future.succeededFuture());
+        LOGGER.error("Failed to get a connection to database", res.cause());
+        resultHandler.handle(Future.failedFuture(res.cause()));
       }
     });
     return this;

@@ -19,6 +19,7 @@ ext {
   jacksonVersion = '2.9.0'
   slf4jVersion = '1.7.25'
   log4jVersion = '2.9.1'
+  pgClientVersion = '0.3.1-SNAPSHOT'
 }
 
 def mainVerticleName = 'com.billyyccc.MainVerticle'
@@ -31,12 +32,18 @@ apply plugin: 'eclipse'
 
 repositories {
   jcenter()
+  maven {
+    url "https://oss.sonatype.org/content/repositories/releases"
+  }
+  maven {
+    url "https://oss.sonatype.org/content/repositories/snapshots"
+  }
 }
 
 dependencies {
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-web:$vertxVersion"
-  compile "io.vertx:vertx-mysql-postgresql-client:$vertxVersion"
+  compile "com.julienviet:vertx-pg-client:$pgClientVersion"
   compile "io.vertx:vertx-service-proxy:$vertxVersion"
   compile("io.vertx:vertx-codegen:$vertxVersion")
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"

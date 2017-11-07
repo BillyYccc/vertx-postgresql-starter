@@ -58,7 +58,7 @@ public class GetBooksHandler implements Handler<RoutingContext> {
         switch (res.result().size()) {
           case 0:
             routingContext.response().setStatusCode(404)
-              .end(res.result().toString());
+              .end();
             break;
           case 1:
             routingContext.response().setStatusCode(200)

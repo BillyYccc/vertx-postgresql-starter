@@ -24,13 +24,12 @@
 
 package com.billyyccc.database;
 
+import com.julienviet.pgclient.PgClient;
+import com.julienviet.pgclient.PgClientOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.asyncsql.PostgreSQLClient;
-import io.vertx.ext.sql.SQLClient;
 import io.vertx.serviceproxy.ServiceBinder;
 
 /**
@@ -40,7 +39,6 @@ import io.vertx.serviceproxy.ServiceBinder;
 public class BookDatabaseVerticle extends AbstractVerticle {
   private static final String CONFIG_PG_HOST = "postgresql.host";
   private static final String CONFIG_PG_PORT = "postgresql.port";
-  private static final String CONFIG_PG_MAXPOOLSIZE = "postgresql.maxpoolsize";
   private static final String CONFIG_PG_DATABASE = "postgresql.database";
   private static final String CONFIG_PG_USERNAME = "postgresql.username";
   private static final String CONFIG_PG_PASSWORD = "postgresql.password";
@@ -51,15 +49,14 @@ public class BookDatabaseVerticle extends AbstractVerticle {
 
   @Override
   public void start(Future<Void> startFuture) throws Exception {
-    JsonObject pgClientOptions = new JsonObject()
-      .put("host", config().getString(CONFIG_PG_HOST, "127.0.0.1"))
-      .put("port", config().getInteger(CONFIG_PG_PORT, 5432))
-      .put("maxPoolSize", config().getInteger(CONFIG_PG_MAXPOOLSIZE))
-      .put("database", config().getString(CONFIG_PG_DATABASE))
-      .put("username", config().getString(CONFIG_PG_USERNAME))
-      .put("password", config().getString(CONFIG_PG_PASSWORD));
+    PgClientOptions pgClientOptions = new PgClientOptions()
+      .setHost(config().getString(CONFIG_PG_HOST, "127.0.0.1"))
+      .setPort(config().getInteger(CONFIG_PG_PORT, 5432))
+      .setDatabase(config().getString(CONFIG_PG_DATABASE))
+      .setUsername(config().getString(CONFIG_PG_USERNAME))
+      .setPassword(config().getString(CONFIG_PG_PASSWORD));
 
-    SQLClient pgClient = PostgreSQLClient.createShared(vertx, pgClientOptions);
+    PgClient pgClient = PgClient.create(vertx, pgClientOptions);
 
     BookDatabaseService.create(pgClient, result -> {
       if (result.succeeded()) {

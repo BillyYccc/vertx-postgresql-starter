@@ -26,6 +26,7 @@ package com.billyyccc.database;
 
 import com.billyyccc.database.impl.BookDatabaseServiceImpl;
 import com.billyyccc.entity.Book;
+import com.julienviet.pgclient.PgClient;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -44,8 +45,8 @@ import io.vertx.ext.sql.SQLClient;
 @VertxGen
 public interface BookDatabaseService {
 
-  static BookDatabaseService create(SQLClient dbClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
-    return new BookDatabaseServiceImpl(dbClient, resultHandler);
+  static BookDatabaseService create(PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
+    return new BookDatabaseServiceImpl(pgClient, resultHandler);
   }
 
   static BookDatabaseService createProxy(Vertx vertx, String address) {

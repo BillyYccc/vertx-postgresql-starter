@@ -115,8 +115,12 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     pgConnectionPool.rxQuery(SQL_FIND_BOOK_BY_ID, id)
       .subscribe(
         resultSet -> {
-          JsonObject resultRow = resultSet.getRows().get(0);
-          resultHandler.handle(Future.succeededFuture(resultRow));
+          if (resultSet.getRows().isEmpty()) {
+            resultHandler.handle(Future.succeededFuture(new JsonObject()));
+          } else {
+            JsonObject resultRow = resultSet.getRows().get(0);
+            resultHandler.handle(Future.succeededFuture(resultRow));
+          }
         }, throwable -> {
           LOGGER.error("Failed to get the book by id " + id, throwable);
           resultHandler.handle(Future.failedFuture(throwable));

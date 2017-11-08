@@ -71,12 +71,14 @@ public class HttpServerVerticle extends AbstractVerticle {
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)
       .rxListen(httpServerPort)
-      .subscribe(server -> {
-        LOGGER.info("HTTP server is running on port " + httpServerPort);
-        startFuture.complete();
-      }, throwable -> {
-        LOGGER.error("Fail to start a HTTP server ", throwable);
-        startFuture.fail(throwable);
-      });
+      .subscribe(
+        server -> {
+          LOGGER.info("HTTP server is running on port " + httpServerPort);
+          startFuture.complete();
+        },
+        throwable -> {
+          LOGGER.error("Fail to start a HTTP server ", throwable);
+          startFuture.fail(throwable);
+        });
   }
 }

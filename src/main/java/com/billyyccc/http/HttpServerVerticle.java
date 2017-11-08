@@ -24,20 +24,21 @@
 
 package com.billyyccc.http;
 
-import com.billyyccc.database.BookDatabaseService;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.http.handler.AddBookHandler;
 import com.billyyccc.http.handler.DeleteBookHandler;
 import com.billyyccc.http.handler.GetBookHandler;
 import com.billyyccc.http.handler.GetBooksHandler;
 import com.billyyccc.http.handler.UpdateBookHandler;
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.http.HttpServer;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.core.http.HttpServer;
+import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
+import static com.billyyccc.database.BookDatabaseService.createProxy;
 import static com.billyyccc.http.EndPoints.*;
 
 /**
@@ -52,13 +53,11 @@ public class HttpServerVerticle extends AbstractVerticle {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerVerticle.class);
 
-  private BookDatabaseService bookDatabaseService;
-
   @Override
   public void start(Future<Void> startFuture) throws Exception {
     HttpServer httpServer = vertx.createHttpServer();
 
-    bookDatabaseService = BookDatabaseService.createProxy(vertx, CONFIG_DB_EB_QUEUE);
+    BookDatabaseService bookDatabaseService = createProxy(vertx.getDelegate(), CONFIG_DB_EB_QUEUE);
 
     Router router = Router.router(vertx);
 
@@ -71,15 +70,15 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)
-      .listen(httpServerPort, ar -> {
-        if (ar.succeeded()) {
+      .rxListen(httpServerPort)
+      .subscribe(
+        server -> {
           LOGGER.info("HTTP server is running on port " + httpServerPort);
           startFuture.complete();
-        } else {
-          LOGGER.error("Fail to start a HTTP server ", ar.cause());
-          startFuture.fail(ar.cause());
-        }
-      });
-
+        },
+        throwable -> {
+          LOGGER.error("Fail to start a HTTP server ", throwable);
+          startFuture.fail(throwable);
+        });
   }
 }

@@ -24,11 +24,11 @@
 
 package com.billyyccc.http.handler;
 
-import com.billyyccc.database.BookDatabaseService;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.RoutingContext;
 
 /**
  * This class is handler for adding a new book.
@@ -50,16 +50,15 @@ public class AddBookHandler implements Handler<RoutingContext> {
 
     routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
-    bookDatabaseService.addNewBook(book, res -> {
-      if (res.succeeded()) {
-        routingContext.response().setStatusCode(200)
-          .end(book.toString());
-      } else {
-        routingContext.response().setStatusCode(400)
-          .end();
-      }
-    });
-
-
+    bookDatabaseService.rxAddNewBook(book)
+      .subscribe(
+        () -> {
+          routingContext.response().setStatusCode(200)
+            .end(book.toString());
+        },
+        throwable -> {
+          routingContext.response().setStatusCode(400)
+            .end();
+        });
   }
 }

@@ -24,9 +24,9 @@
 
 package com.billyyccc.http.handler;
 
-import com.billyyccc.database.BookDatabaseService;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.RoutingContext;
 
 /**
  * This class is handler for deleting a existing book.
@@ -48,14 +48,16 @@ public class DeleteBookHandler implements Handler<RoutingContext> {
 
     routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
-    bookDatabaseService.deleteBookById(bookId, res -> {
-      if (res.succeeded()) {
-        routingContext.response().setStatusCode(200)
-          .end();
-      } else {
-        routingContext.response().setStatusCode(400)
-          .end();
-      }
-    });
+    bookDatabaseService.rxDeleteBookById(bookId)
+      .subscribe(
+        () -> {
+          routingContext.response().setStatusCode(200)
+            .end();
+        },
+        throwable -> {
+          routingContext.response().setStatusCode(400)
+            .end();
+        });
+
   }
 }

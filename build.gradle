@@ -45,7 +45,8 @@ dependencies {
   compile "io.vertx:vertx-web:$vertxVersion"
   compile "com.julienviet:vertx-pg-client:$pgClientVersion"
   compile "io.vertx:vertx-service-proxy:$vertxVersion"
-  compile("io.vertx:vertx-codegen:$vertxVersion")
+  compile "io.vertx:vertx-codegen:$vertxVersion"
+  compile "io.vertx:vertx-rx-java2:$vertxVersion"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
 
   // Logging Dependencies
@@ -74,7 +75,7 @@ sourceSets {
       srcDirs = ["src/main/java"]
       srcDirs += generatedSrcPath
     }
-    resources{
+    resources {
       srcDirs = ["src/main/resources"]
     }
 

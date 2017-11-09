@@ -11,7 +11,7 @@ This project provides an easy example of a CRUD REST service. The HTTP header sh
     "id": 1,
     "title": "Novel Book",
     "category": "novel",
-    "publicationdate": "2010-01-01",
+    "publicationdate": "2010-01-01"
 }
 ```
 
@@ -71,7 +71,7 @@ Request Body:
 
 Return the new added Book
 
-##### Update an book or create one if not exists
+##### Update a book or create one if not exists
 
 `PUT /books/:id`
 

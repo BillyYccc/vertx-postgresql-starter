@@ -26,8 +26,12 @@ package com.billyyccc.http.handler;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
+import com.billyyccc.http.exception.BadRequestException;
+import com.billyyccc.http.exception.ResourceNotFoundException;
 import io.vertx.core.Handler;
 import io.vertx.reactivex.ext.web.RoutingContext;
+
+import static com.billyyccc.http.utils.RestResponseUtil.*;
 
 /**
  * This class is handler for getting all books or some books by conditions.
@@ -44,37 +48,28 @@ public class GetBooksHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    //TODO need some Validation and error Handling
     // Get all the query parameters to an object
     Book book = new Book();
     book.setTitle(routingContext.queryParams().get("title"));
     book.setCategory(routingContext.queryParams().get("category"));
     book.setPublicationDate(routingContext.queryParams().get("publicationdate"));
 
-    routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
-
     bookDatabaseService.rxGetBooks(book)
       .subscribe(
         dbResponse -> {
           switch (dbResponse.size()) {
             case 0:
-              routingContext.response().setStatusCode(404)
-                .end();
+              routingContext.fail(new ResourceNotFoundException("The books can not be found"));
               break;
             case 1:
-              routingContext.response().setStatusCode(200)
-                .end(dbResponse.getJsonObject(0).toString());
+              restResponse(routingContext, 200, dbResponse.getJsonObject(0).toString());
               break;
             default:
-              routingContext.response().setStatusCode(200)
-                .end(dbResponse.toString());
+              restResponse(routingContext, 200, dbResponse.toString());
               break;
           }
         },
-        throwable -> {
-          routingContext.response().setStatusCode(400)
-            .end();
-        }
+        throwable -> routingContext.fail(new BadRequestException(throwable))
       );
   }
 }

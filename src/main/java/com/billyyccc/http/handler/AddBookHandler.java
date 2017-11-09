@@ -26,9 +26,12 @@ package com.billyyccc.http.handler;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
+import com.billyyccc.http.exception.BadRequestException;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.reactivex.ext.web.RoutingContext;
+
+import static com.billyyccc.http.utils.RestResponseUtil.*;
 
 /**
  * This class is handler for adding a new book.
@@ -45,20 +48,11 @@ public class AddBookHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    //TODO need some Validation and error Handling
     Book book = Json.decodeValue(routingContext.getBodyAsString("UTF-8"), Book.class);
-
-    routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
 
     bookDatabaseService.rxAddNewBook(book)
       .subscribe(
-        () -> {
-          routingContext.response().setStatusCode(200)
-            .end(book.toString());
-        },
-        throwable -> {
-          routingContext.response().setStatusCode(400)
-            .end();
-        });
+        () -> restResponse(routingContext, 200, book.toString()),
+        throwable -> routingContext.fail(new BadRequestException(throwable)));
   }
 }

@@ -47,6 +47,7 @@ dependencies {
   compile "io.vertx:vertx-service-proxy:$vertxVersion"
   compile "io.vertx:vertx-codegen:$vertxVersion"
   compile "io.vertx:vertx-rx-java2:$vertxVersion"
+  compile "io.vertx:vertx-web-api-contract:$vertxVersion"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
 
   // Logging Dependencies

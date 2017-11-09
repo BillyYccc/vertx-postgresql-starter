@@ -47,13 +47,13 @@ public class GetBookHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    int bookId = Integer.valueOf(routingContext.pathParam("bookid"));
+    int bookId = Integer.valueOf(routingContext.pathParam("id"));
 
     bookDatabaseService.rxGetBookById(bookId)
       .subscribe(
         dbResponse -> {
           if (dbResponse.isEmpty()) {
-            routingContext.fail(new ResourceNotFoundException("The book with " + bookId + " can not be found"));
+            routingContext.fail(new ResourceNotFoundException("The book with id " + bookId + " can not be found"));
           } else {
             restResponse(routingContext, 200, dbResponse.toString());
           }

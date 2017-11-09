@@ -33,9 +33,9 @@ package com.billyyccc.http;
 final class EndPoints {
   protected static final String GET_BOOKS = "/books";
   protected static final String ADD_NEW_BOOK = "/books";
-  protected static final String GET_BOOK_BY_ID = "/books/:bookid";
-  protected static final String DELETE_BOOK_BY_ID = "/books/:bookid";
-  protected static final String UPDATE_BOOK_BY_ID = "/books/:bookid";
+  protected static final String GET_BOOK_BY_ID = "/books/:id";
+  protected static final String DELETE_BOOK_BY_ID = "/books/:id";
+  protected static final String UPDATE_BOOK_BY_ID = "/books/:id";
 
   private EndPoints() {
     // No instance of this class allowed

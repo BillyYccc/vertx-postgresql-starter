@@ -65,23 +65,30 @@ public class HttpServerVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
 
     router.route().handler(BodyHandler.create());
+
     router.route().handler(HTTPRequestValidationHandler.create().addExpectedContentType("application/json"));
+
     router.get(GET_BOOKS).handler(HTTPRequestValidationHandler.create()
       .addQueryParam("title", ParameterType.GENERIC_STRING, false)
       .addQueryParam("category", ParameterType.GENERIC_STRING, false)
       .addQueryParam("publicationdate", ParameterType.DATE, false))
       .handler(new GetBooksHandler(bookDatabaseService));
+
     router.post(ADD_NEW_BOOK).handler(new AddBookHandler(bookDatabaseService));
+
     router.delete(DELETE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
-      .addPathParam("bookid", ParameterType.INT))
+      .addPathParam("id", ParameterType.INT))
       .handler(new DeleteBookHandler(bookDatabaseService));
+
     router.get(GET_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
-      .addPathParam("bookid", ParameterType.INT))
+      .addPathParam("id", ParameterType.INT))
       .handler(new GetBookHandler(bookDatabaseService));
+
     router.put(UPDATE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
-      .addPathParam("bookid", ParameterType.INT))
+      .addPathParam("id", ParameterType.INT))
       .handler(new UpdateBookHandler(bookDatabaseService));
-    router.route().handler(new FailureHandler());
+
+    router.route().failureHandler(new FailureHandler());
 
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)

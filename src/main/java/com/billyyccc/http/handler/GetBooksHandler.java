@@ -59,7 +59,7 @@ public class GetBooksHandler implements Handler<RoutingContext> {
         dbResponse -> {
           switch (dbResponse.size()) {
             case 0:
-              routingContext.fail(new ResourceNotFoundException("The books can not be found"));
+              routingContext.fail(new ResourceNotFoundException("The books have not been found"));
               break;
             case 1:
               restResponse(routingContext, 200, dbResponse.getJsonObject(0).toString());

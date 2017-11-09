@@ -46,7 +46,7 @@ public class DeleteBookHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    int bookId = Integer.valueOf(routingContext.pathParam("bookid"));
+    int bookId = Integer.valueOf(routingContext.pathParam("id"));
 
     bookDatabaseService.rxDeleteBookById(bookId)
       .subscribe(

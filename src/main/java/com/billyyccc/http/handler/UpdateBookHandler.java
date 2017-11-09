@@ -5,6 +5,7 @@ import com.billyyccc.entity.Book;
 import com.billyyccc.http.exception.BadRequestException;
 import com.billyyccc.http.utils.RestResponseUtil;
 import io.vertx.core.Handler;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
@@ -25,18 +26,24 @@ public class UpdateBookHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    Book book = Json.decodeValue(routingContext.getBodyAsString("UTF-8"), Book.class);
-    int bookId = Integer.valueOf(routingContext.pathParam("bookid"));
+    try {
+      Book book = Json.decodeValue(routingContext.getBodyAsString("UTF-8"), Book.class);
+      int bookId = Integer.valueOf(routingContext.pathParam("id"));
 
-    bookDatabaseService.rxUpsertBookById(bookId, book)
-      .subscribe(
-        () -> RestResponseUtil.restResponse(routingContext, 200, new JsonObject()
-          .put("id", bookId)
-          .put("title", book.getTitle())
-          .put("category", book.getCategory())
-          .put("publicationdate", book.getPublicationDate())
-          .toString()),
-        throwable -> routingContext.fail(new BadRequestException(throwable))
-      );
+      bookDatabaseService.rxUpsertBookById(bookId, book)
+        .subscribe(
+          () -> RestResponseUtil.restResponse(routingContext, 200, new JsonObject()
+            .put("id", bookId)
+            .put("title", book.getTitle())
+            .put("category", book.getCategory())
+            .put("publicationdate", book.getPublicationDate())
+            .toString()),
+          throwable -> routingContext.fail(new BadRequestException(throwable))
+        );
+    } catch (DecodeException exception) {
+      routingContext.fail(exception);
+      exception.printStackTrace();
+    }
+
   }
 }

@@ -27,18 +27,21 @@ package com.billyyccc.http;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.http.handler.AddBookHandler;
 import com.billyyccc.http.handler.DeleteBookHandler;
+import com.billyyccc.http.handler.FailureHandler;
 import com.billyyccc.http.handler.GetBookHandler;
 import com.billyyccc.http.handler.GetBooksHandler;
 import com.billyyccc.http.handler.UpdateBookHandler;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.api.validation.ParameterType;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.http.HttpServer;
 import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
-import static com.billyyccc.database.BookDatabaseService.createProxy;
+import static com.billyyccc.database.BookDatabaseService.*;
 import static com.billyyccc.http.EndPoints.*;
 
 /**
@@ -62,11 +65,30 @@ public class HttpServerVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
 
     router.route().handler(BodyHandler.create());
-    router.get(GET_BOOKS).handler(new GetBooksHandler(bookDatabaseService));
+
+    router.route().handler(HTTPRequestValidationHandler.create().addExpectedContentType("application/json"));
+
+    router.get(GET_BOOKS).handler(HTTPRequestValidationHandler.create()
+      .addQueryParam("title", ParameterType.GENERIC_STRING, false)
+      .addQueryParam("category", ParameterType.GENERIC_STRING, false)
+      .addQueryParam("publicationdate", ParameterType.DATE, false))
+      .handler(new GetBooksHandler(bookDatabaseService));
+
     router.post(ADD_NEW_BOOK).handler(new AddBookHandler(bookDatabaseService));
-    router.delete(DELETE_BOOK_BY_ID).handler(new DeleteBookHandler(bookDatabaseService));
-    router.get(GET_BOOK_BY_ID).handler(new GetBookHandler(bookDatabaseService));
-    router.put(UPDATE_BOOK_BY_ID).handler(new UpdateBookHandler(bookDatabaseService));
+
+    router.delete(DELETE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
+      .addPathParam("id", ParameterType.INT))
+      .handler(new DeleteBookHandler(bookDatabaseService));
+
+    router.get(GET_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
+      .addPathParam("id", ParameterType.INT))
+      .handler(new GetBookHandler(bookDatabaseService));
+
+    router.put(UPDATE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
+      .addPathParam("id", ParameterType.INT))
+      .handler(new UpdateBookHandler(bookDatabaseService));
+
+    router.route().failureHandler(new FailureHandler());
 
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)

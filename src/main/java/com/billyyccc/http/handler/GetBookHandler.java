@@ -25,8 +25,12 @@
 package com.billyyccc.http.handler;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
+import com.billyyccc.http.exception.BadRequestException;
+import com.billyyccc.http.exception.ResourceNotFoundException;
 import io.vertx.core.Handler;
 import io.vertx.reactivex.ext.web.RoutingContext;
+
+import static com.billyyccc.http.utils.RestResponseUtil.*;
 
 /**
  * This class is handler for getting the specified book by bookId.
@@ -43,26 +47,18 @@ public class GetBookHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    //TODO need some Validation and error Handling
-    int bookId = Integer.valueOf(routingContext.pathParam("bookid"));
-
-    routingContext.response().putHeader("content-type", "application/json; charset=UTF-8");
+    int bookId = Integer.valueOf(routingContext.pathParam("id"));
 
     bookDatabaseService.rxGetBookById(bookId)
       .subscribe(
         dbResponse -> {
           if (dbResponse.isEmpty()) {
-            routingContext.response().setStatusCode(404)
-              .end();
+            routingContext.fail(new ResourceNotFoundException("The book with id " + bookId + " can not be found"));
           } else {
-            routingContext.response().setStatusCode(200)
-              .end(dbResponse.toString());
+            restResponse(routingContext, 200, dbResponse.toString());
           }
         },
-        throwable -> {
-          routingContext.response().setStatusCode(400)
-            .end();
-        }
+        throwable -> routingContext.fail(new BadRequestException(throwable))
       );
   }
 }

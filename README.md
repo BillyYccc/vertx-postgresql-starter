@@ -1,6 +1,6 @@
 # vertx-postgresql-starter
 
-This is a starter to build a monolithic CRUD RESTful Web Service with [Vert.x](http://vertx.io/) stack and [postgreSQL](https://www.postgresql.org/).
+This is a starter to build a [monolithic](http://microservices.io/patterns/monolithic.html) CRUD RESTful Web Service with [Vert.x](http://vertx.io/) stack and [postgreSQL](https://www.postgresql.org/).
 It leverages [Gradle](https://gradle.org/) to build and [Docker](https://www.docker.com/) to boost deployment.
 
 [![Build Status](https://travis-ci.org/BillyYccc/vertx-postgresql-starter.svg?branch=master)](https://travis-ci.org/BillyYccc/vertx-postgresql-starter)

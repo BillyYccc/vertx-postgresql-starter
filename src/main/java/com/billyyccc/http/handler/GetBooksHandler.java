@@ -52,7 +52,7 @@ public class GetBooksHandler implements Handler<RoutingContext> {
     Book book = new Book();
     book.setTitle(routingContext.queryParams().get("title"));
     book.setCategory(routingContext.queryParams().get("category"));
-    book.setPublicationDate(routingContext.queryParams().get("publicationdate"));
+    book.setPublicationDate(routingContext.queryParams().get("publicationDate"));
 
     bookDatabaseService.rxGetBooks(book)
       .subscribe(

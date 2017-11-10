@@ -36,7 +36,7 @@ public class UpdateBookHandler implements Handler<RoutingContext> {
             .put("id", bookId)
             .put("title", book.getTitle())
             .put("category", book.getCategory())
-            .put("publicationdate", book.getPublicationDate())
+            .put("publicationDate", book.getPublicationDate())
             .toString()),
           throwable -> routingContext.fail(new BadRequestException(throwable))
         );

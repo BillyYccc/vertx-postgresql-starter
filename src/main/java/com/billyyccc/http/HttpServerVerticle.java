@@ -71,7 +71,7 @@ public class HttpServerVerticle extends AbstractVerticle {
     router.get(GET_BOOKS).handler(HTTPRequestValidationHandler.create()
       .addQueryParam("title", ParameterType.GENERIC_STRING, false)
       .addQueryParam("category", ParameterType.GENERIC_STRING, false)
-      .addQueryParam("publicationdate", ParameterType.DATE, false))
+      .addQueryParam("publicationDate", ParameterType.DATE, false))
       .handler(new GetBooksHandler(bookDatabaseService));
 
     router.post(ADD_NEW_BOOK).handler(new AddBookHandler(bookDatabaseService));

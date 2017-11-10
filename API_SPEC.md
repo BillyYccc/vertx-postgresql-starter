@@ -11,7 +11,7 @@ This project provides an easy example of a CRUD REST service. The HTTP header sh
     "id": 1,
     "title": "Novel Book",
     "category": "novel",
-    "publicationdate": "2010-01-01"
+    "publicationDate": "2010-01-01"
 }
 ```
 
@@ -22,13 +22,13 @@ This project provides an easy example of a CRUD REST service. The HTTP header sh
         "id": 1,
         "title": "Book 1",
         "category": "science",
-        "publicationdate": "2016-01-01"
+        "publicationDate": "2016-01-01"
     },
     {
         "id": 2,
         "title": "Book 2",
         "category": "literature",
-        "publicationdate": "2017-02-01"
+        "publicationDate": "2017-02-01"
     }
 ]
 ```
@@ -39,7 +39,7 @@ This project provides an easy example of a CRUD REST service. The HTTP header sh
 
 `GET /books`
 
-Returns all Books by default, query parameters `title`, `category`,`publicationdate` can be used to filter the results.
+Returns all Books by default, query parameters `title`, `category`,`publicationDate` can be used to filter the results.
 
 Filter by query parameters:
 
@@ -47,7 +47,7 @@ Filter by query parameters:
 
 `?category=computer`
 
-`?publicationdate=2000-01-01`
+`?publicationDate=2000-01-01`
 
 ##### Get a specific book by id
 
@@ -57,7 +57,7 @@ Return the specific Book by id.
 
 ##### Add a new book
 
-`POST /books/:id`
+`POST /books`
 
 Request Body:
 ```Json
@@ -65,7 +65,7 @@ Request Body:
         "id": 1,
         "title": "Thinking in java",
         "category": "java",
-        "publicationdate": "2006-02-20"
+        "publicationDate": "2006-02-20"
 }
 ```
 
@@ -80,7 +80,7 @@ Request Body:
 {
         "title": "Thinking in java",
         "category": "java",
-        "publicationdate": "2006-02-20"
+        "publicationDate": "2006-02-20"
 }
 ```
 

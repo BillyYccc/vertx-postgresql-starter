@@ -16,10 +16,10 @@ ext {
   //dependencies
   junitVersion = '4.12'
   vertxVersion = '3.5.0'
-  jacksonVersion = '2.9.0'
   slf4jVersion = '1.7.25'
   log4jVersion = '2.9.1'
   pgClientVersion = '0.3.1-SNAPSHOT'
+  mockitoVersion = '2.12.0'
 }
 
 def mainVerticleName = 'com.billyyccc.MainVerticle'
@@ -48,7 +48,6 @@ dependencies {
   compile "io.vertx:vertx-codegen:$vertxVersion"
   compile "io.vertx:vertx-rx-java2:$vertxVersion"
   compile "io.vertx:vertx-web-api-contract:$vertxVersion"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
 
   // Logging Dependencies
   compile "org.slf4j:slf4j-api:$slf4jVersion"
@@ -59,6 +58,7 @@ dependencies {
   // Testing Suite Dependencies
   testCompile "junit:junit:$junitVersion"
   testCompile "io.vertx:vertx-unit:$vertxVersion"
+  testCompile "org.mockito:mockito-core:$mockitoVersion"
 }
 
 def generatedSrcPath = "${projectDir}/src/main/generated"

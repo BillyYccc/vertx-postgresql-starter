@@ -25,7 +25,9 @@
 package com.billyyccc.http.handler;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
+import com.billyyccc.entity.Book;
 import io.reactivex.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -39,13 +41,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 /**
- * This test Class is to perform unit tests for handlers of CRUD operations of books.
- *
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
 @RunWith(VertxUnitRunner.class)
-public class GetBookByIdHandlerTest {
+public class GetBooksHandlerTest {
   private Vertx vertx;
   private Router router;
   private BookDatabaseService bookDatabaseService;
@@ -57,16 +57,22 @@ public class GetBookByIdHandlerTest {
 
     bookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
-    JsonObject mockDbResponse = new JsonObject()
-      .put("id", 1)
-      .put("title", "Effective Java")
-      .put("category", "java")
-      .put("publicationDate", "2009-01-01");
+    JsonArray mockDbResponse = new JsonArray()
+      .add(new JsonObject()
+        .put("id", 1)
+        .put("title", "Effective Java")
+        .put("category", "java")
+        .put("publicationDate", "2009-01-01"))
+      .add(new JsonObject()
+        .put("id", 2)
+        .put("title", "Thinking in Java")
+        .put("category", "java")
+        .put("publicationDate", "2006-02-20"));
 
 
-    Mockito.when(bookDatabaseService.rxGetBookById(1)).thenReturn(Single.just(mockDbResponse));
+    Mockito.when(bookDatabaseService.rxGetBooks(new Book())).thenReturn(Single.just(mockDbResponse));
 
-    router.get("/books/:id").handler(new GetBookByIdHandler(bookDatabaseService));
+    router.get("/books").handler(new GetBooksHandler(bookDatabaseService));
 
     vertx.createHttpServer().requestHandler(router::accept).listen(1234);
   }
@@ -79,18 +85,24 @@ public class GetBookByIdHandlerTest {
   @Test
   public void restApiTest(TestContext testContext) {
     Async async = testContext.async();
-    vertx.createHttpClient().getNow(1234, "localhost", "/books/1", res -> {
+    vertx.createHttpClient().getNow(1234, "localhost", "/books", res -> {
       testContext.assertEquals(res.statusCode(), 200);
       res.bodyHandler(body -> {
         testContext.assertTrue(body.length() > 0);
 
-        JsonObject expectedResponseBody = new JsonObject()
-          .put("id", 1)
-          .put("title", "Effective Java")
-          .put("category", "java")
-          .put("publicationDate", "2009-01-01");
+        JsonArray expectedResponseBody = new JsonArray()
+          .add(new JsonObject()
+            .put("id", 1)
+            .put("title", "Effective Java")
+            .put("category", "java")
+            .put("publicationDate", "2009-01-01"))
+          .add(new JsonObject()
+            .put("id", 2)
+            .put("title", "Thinking in Java")
+            .put("category", "java")
+            .put("publicationDate", "2006-02-20"));
 
-        testContext.assertEquals(expectedResponseBody, body.toJsonObject());
+        testContext.assertEquals(expectedResponseBody, body.toJsonArray());
         async.complete();
       });
     });

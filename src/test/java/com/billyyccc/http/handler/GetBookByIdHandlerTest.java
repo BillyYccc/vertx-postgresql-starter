@@ -66,7 +66,7 @@ public class GetBookByIdHandlerTest {
 
     Mockito.when(bookDatabaseService.rxGetBookById(1)).thenReturn(Single.just(mockDbResponse));
 
-    router.get("/books/:id").handler(new GetBookHandler(bookDatabaseService));
+    router.get("/books/:id").handler(new GetBookByIdHandler(bookDatabaseService));
 
     vertx.createHttpServer().requestHandler(router::accept).listen(1234);
   }

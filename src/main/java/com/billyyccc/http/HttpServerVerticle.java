@@ -28,7 +28,7 @@ import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.http.handler.AddBookHandler;
 import com.billyyccc.http.handler.DeleteBookHandler;
 import com.billyyccc.http.handler.FailureHandler;
-import com.billyyccc.http.handler.GetBookHandler;
+import com.billyyccc.http.handler.GetBookByIdHandler;
 import com.billyyccc.http.handler.GetBooksHandler;
 import com.billyyccc.http.handler.UpdateBookHandler;
 import io.vertx.core.Future;
@@ -82,7 +82,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     router.get(GET_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
       .addPathParam("id", ParameterType.INT))
-      .handler(new GetBookHandler(bookDatabaseService));
+      .handler(new GetBookByIdHandler(bookDatabaseService));
 
     router.put(UPDATE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
       .addPathParam("id", ParameterType.INT))

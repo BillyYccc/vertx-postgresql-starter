@@ -38,10 +38,10 @@ import static com.billyyccc.http.utils.RestResponseUtil.*;
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
-public class GetBookHandler implements Handler<RoutingContext> {
+public class GetBookByIdHandler implements Handler<RoutingContext> {
   private BookDatabaseService bookDatabaseService;
 
-  public GetBookHandler(BookDatabaseService bookDatabaseService) {
+  public GetBookByIdHandler(BookDatabaseService bookDatabaseService) {
     this.bookDatabaseService = bookDatabaseService;
   }
 

@@ -86,7 +86,7 @@ public class GetBooksHandlerTest {
   public void restApiTest(TestContext testContext) {
     Async async = testContext.async();
     vertx.createHttpClient().getNow(1234, "localhost", "/books", res -> {
-      testContext.assertEquals(res.statusCode(), 200);
+      testContext.assertEquals(200, res.statusCode());
       res.bodyHandler(body -> {
         testContext.assertTrue(body.length() > 0);
 

@@ -61,20 +61,17 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 
-  private final PgClient pgClient;
   private final PgPool pgConnectionPool;
 
   public BookDatabaseServiceImpl(com.julienviet.pgclient.PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
-    this.pgClient = new PgClient(pgClient);
-    pgConnectionPool = this.pgClient.createPool(new PgPoolOptions().setMaxSize(20));
+    PgClient rxPgClient = new PgClient(pgClient);
+    pgConnectionPool = rxPgClient.createPool(new PgPoolOptions().setMaxSize(20));
     this.pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection
         .rxQuery(SQL_FIND_ALL_BOOKS)
         .doAfterTerminate(pgConnection::close)
       ).subscribe(
-      resultSet -> {
-        resultHandler.handle(Future.succeededFuture(this));
-      },
+      resultSet -> resultHandler.handle(Future.succeededFuture(this)),
       throwable -> {
         LOGGER.error("Can not open a database connection", throwable);
         resultHandler.handle(Future.failedFuture(throwable));
@@ -86,9 +83,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     pgConnectionPool.rxUpdate(SQL_ADD_NEW_BOOK,
       book.getId(), book.getTitle(), book.getCategory(), book.getPublicationDate())
       .subscribe(
-        updateResult -> {
-          resultHandler.handle(Future.succeededFuture());
-        },
+        updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to add a new book into database", throwable);
           resultHandler.handle(Future.failedFuture(throwable));
@@ -100,9 +95,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   public BookDatabaseService deleteBookById(int id, Handler<AsyncResult<Void>> resultHandler) {
     pgConnectionPool.rxUpdate(SQL_DELETE_BOOK_BY_ID, id)
       .subscribe(
-        updateResult -> {
-          resultHandler.handle(Future.succeededFuture());
-        },
+        updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to delete the book by id " + id, throwable);
           resultHandler.handle(Future.failedFuture(throwable));
@@ -161,7 +154,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     SingleObserver<? super ResultSet> singleObserver = new SingleObserver<ResultSet>() {
       @Override
       public void onSubscribe(Disposable disposable) {
-
+        // disposable
       }
 
       @Override
@@ -190,6 +183,9 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
       case 3:
         pgConnectionPool.rxQuery(dynamicSql, params.get(0), params.get(1), params.get(2)).subscribe(singleObserver);
         break;
+      default:
+        pgConnectionPool.rxQuery(dynamicSql).subscribe(singleObserver);
+        break;
     }
     return this;
   }
@@ -198,9 +194,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
     pgConnectionPool.rxUpdate(SQL_UPSERT_BOOK_BY_ID, id, book.getTitle(), book.getCategory(), book.getPublicationDate())
       .subscribe(
-        updateResult -> {
-          resultHandler.handle(Future.succeededFuture());
-        },
+        updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to upsert the book by id " + book.getId(), throwable);
           resultHandler.handle(Future.failedFuture(throwable));

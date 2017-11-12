@@ -51,8 +51,6 @@ import org.mockito.Mockito;
 @RunWith(VertxUnitRunner.class)
 public class GetBooksHandlerTest {
   private Vertx vertx;
-  private Router router;
-  private BookDatabaseService bookDatabaseService;
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -60,9 +58,9 @@ public class GetBooksHandlerTest {
   @Before
   public void setUp(TestContext testContext) {
     vertx = new Vertx(rule.vertx());
-    router = Router.router(vertx);
+    Router router = Router.router(vertx);
 
-    bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     JsonArray mockDbResponse = new JsonArray()
       .add(new JsonObject()

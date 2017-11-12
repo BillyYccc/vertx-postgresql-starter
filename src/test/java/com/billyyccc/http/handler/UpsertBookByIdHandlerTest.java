@@ -52,8 +52,6 @@ import org.mockito.Mockito;
 @RunWith(VertxUnitRunner.class)
 public class UpsertBookByIdHandlerTest {
   private Vertx vertx;
-  private Router router;
-  private BookDatabaseService bookDatabaseService;
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -61,9 +59,9 @@ public class UpsertBookByIdHandlerTest {
   @Before
   public void setUp(TestContext testContext) {
     vertx = new Vertx(rule.vertx());
-    router = Router.router(vertx);
+    Router router = Router.router(vertx);
 
-    bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     Book book = new Book(0, "Java Concurrency in Practice", "java", "2006-05-19");
 

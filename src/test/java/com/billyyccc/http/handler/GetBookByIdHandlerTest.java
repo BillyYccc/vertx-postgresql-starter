@@ -49,8 +49,6 @@ import org.mockito.Mockito;
 @RunWith(VertxUnitRunner.class)
 public class GetBookByIdHandlerTest {
   private Vertx vertx;
-  private Router router;
-  private BookDatabaseService bookDatabaseService;
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -58,9 +56,9 @@ public class GetBookByIdHandlerTest {
   @Before
   public void setUp(TestContext testContext) {
     vertx = new Vertx(rule.vertx());
-    router = Router.router(vertx);
+    Router router = Router.router(vertx);
 
-    bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     JsonObject mockDbResponse = new JsonObject()
       .put("id", 1)

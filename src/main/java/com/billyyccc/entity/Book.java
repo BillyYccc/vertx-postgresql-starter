@@ -108,12 +108,14 @@ public class Book {
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
-    if (!(obj instanceof Book)) return false;
+    if (obj == null || getClass() != obj.getClass()) return false;
+
     Book book = (Book) obj;
-    return this.id == book.id &&
-      (this.title != null ? this.title.equals(book.title) : book.title == null) &&
-      (this.category != null ? this.category.equals(book.category) : book.category == null) &&
-      (this.publicationDate != null ? this.publicationDate.equals(book.publicationDate) : book.publicationDate == null);
+
+    if (id != book.id) return false;
+    if (title != null ? !title.equals(book.title) : book.title != null) return false;
+    if (category != null ? !category.equals(book.category) : book.category != null) return false;
+    return publicationDate != null ? publicationDate.equals(book.publicationDate) : book.publicationDate == null;
   }
 
   @Override

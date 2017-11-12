@@ -39,7 +39,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 /**
- * This test Class is to perform unit tests for handlers of CRUD operations of books.
+ * This test Class is to perform unit tests for GetBookByIdHandler of books.
  *
  * @author Billy Yuan <billy112487983@gmail.com>
  */

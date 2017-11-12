@@ -30,7 +30,7 @@ import com.billyyccc.http.handler.DeleteBookByIdHandler;
 import com.billyyccc.http.handler.FailureHandler;
 import com.billyyccc.http.handler.GetBookByIdHandler;
 import com.billyyccc.http.handler.GetBooksHandler;
-import com.billyyccc.http.handler.UpdateBookHandler;
+import com.billyyccc.http.handler.UpsertBookByIdHandler;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -86,7 +86,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     router.put(UPDATE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
       .addPathParam("id", ParameterType.INT))
-      .handler(new UpdateBookHandler(bookDatabaseService));
+      .handler(new UpsertBookByIdHandler(bookDatabaseService));
 
     router.route().failureHandler(new FailureHandler());
 

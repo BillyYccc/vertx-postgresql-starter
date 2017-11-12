@@ -3,24 +3,25 @@ package com.billyyccc.http.handler;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import com.billyyccc.http.exception.BadRequestException;
-import com.billyyccc.http.utils.RestResponseUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
+import static com.billyyccc.http.utils.RestResponseUtil.*;
+
 /**
- * This class is handler for updating a new book.
+ * This class is handler for updating an existed book.
  * If the book does not exist, then create a new one.
  *
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
-public class UpdateBookHandler implements Handler<RoutingContext> {
+public class UpsertBookByIdHandler implements Handler<RoutingContext> {
   private BookDatabaseService bookDatabaseService;
 
-  public UpdateBookHandler(BookDatabaseService bookDatabaseService) {
+  public UpsertBookByIdHandler(BookDatabaseService bookDatabaseService) {
     this.bookDatabaseService = bookDatabaseService;
   }
 
@@ -32,7 +33,7 @@ public class UpdateBookHandler implements Handler<RoutingContext> {
 
       bookDatabaseService.rxUpsertBookById(bookId, book)
         .subscribe(
-          () -> RestResponseUtil.restResponse(routingContext, 200, new JsonObject()
+          () -> restResponse(routingContext, 200, new JsonObject()
             .put("id", bookId)
             .put("title", book.getTitle())
             .put("category", book.getCategory())

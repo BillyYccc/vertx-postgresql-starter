@@ -30,6 +30,7 @@ import io.reactivex.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
@@ -37,6 +38,7 @@ import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -53,10 +55,12 @@ public class UpsertBookByIdHandlerTest {
   private Router router;
   private BookDatabaseService bookDatabaseService;
 
+  @Rule
+  public RunTestOnContext rule = new RunTestOnContext();
+
   @Before
   public void setUp(TestContext testContext) {
-
-    vertx = Vertx.vertx();
+    vertx = new Vertx(rule.vertx());
     router = Router.router(vertx);
 
     bookDatabaseService = Mockito.mock(BookDatabaseService.class);
@@ -105,6 +109,5 @@ public class UpsertBookByIdHandlerTest {
         .put("title", "Java Concurrency in Practice")
         .put("category", "java")
         .put("publicationDate", "2006-05-19").toString());
-
   }
 }

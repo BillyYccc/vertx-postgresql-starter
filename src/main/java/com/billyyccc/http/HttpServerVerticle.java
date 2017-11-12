@@ -26,7 +26,7 @@ package com.billyyccc.http;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.http.handler.AddBookHandler;
-import com.billyyccc.http.handler.DeleteBookHandler;
+import com.billyyccc.http.handler.DeleteBookByIdHandler;
 import com.billyyccc.http.handler.FailureHandler;
 import com.billyyccc.http.handler.GetBookByIdHandler;
 import com.billyyccc.http.handler.GetBooksHandler;
@@ -78,7 +78,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     router.delete(DELETE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
       .addPathParam("id", ParameterType.INT))
-      .handler(new DeleteBookHandler(bookDatabaseService));
+      .handler(new DeleteBookByIdHandler(bookDatabaseService));
 
     router.get(GET_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
       .addPathParam("id", ParameterType.INT))

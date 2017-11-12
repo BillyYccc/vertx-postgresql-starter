@@ -37,10 +37,10 @@ import static com.billyyccc.http.utils.RestResponseUtil.*;
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
-public class DeleteBookHandler implements Handler<RoutingContext> {
+public class DeleteBookByIdHandler implements Handler<RoutingContext> {
   private BookDatabaseService bookDatabaseService;
 
-  public DeleteBookHandler(BookDatabaseService bookDatabaseService) {
+  public DeleteBookByIdHandler(BookDatabaseService bookDatabaseService) {
     this.bookDatabaseService = bookDatabaseService;
   }
 

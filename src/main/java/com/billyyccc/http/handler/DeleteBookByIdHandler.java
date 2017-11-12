@@ -26,22 +26,21 @@ package com.billyyccc.http.handler;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.http.exception.BadRequestException;
-import com.billyyccc.http.exception.ResourceNotFoundException;
 import io.vertx.core.Handler;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 import static com.billyyccc.http.utils.RestResponseUtil.*;
 
 /**
- * This class is handler for getting the specified book by bookId.
+ * This class is handler for deleting a existing book.
  *
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
-public class GetBookHandler implements Handler<RoutingContext> {
+public class DeleteBookByIdHandler implements Handler<RoutingContext> {
   private BookDatabaseService bookDatabaseService;
 
-  public GetBookHandler(BookDatabaseService bookDatabaseService) {
+  public DeleteBookByIdHandler(BookDatabaseService bookDatabaseService) {
     this.bookDatabaseService = bookDatabaseService;
   }
 
@@ -49,16 +48,10 @@ public class GetBookHandler implements Handler<RoutingContext> {
   public void handle(RoutingContext routingContext) {
     int bookId = Integer.valueOf(routingContext.pathParam("id"));
 
-    bookDatabaseService.rxGetBookById(bookId)
+    bookDatabaseService.rxDeleteBookById(bookId)
       .subscribe(
-        dbResponse -> {
-          if (dbResponse.isEmpty()) {
-            routingContext.fail(new ResourceNotFoundException("The book with id " + bookId + " can not be found"));
-          } else {
-            restResponse(routingContext, 200, dbResponse.toString());
-          }
-        },
-        throwable -> routingContext.fail(new BadRequestException(throwable))
-      );
+        () -> restResponse(routingContext, 200),
+        throwable -> routingContext.fail(new BadRequestException(throwable)));
+
   }
 }

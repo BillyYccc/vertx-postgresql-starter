@@ -1,6 +1,8 @@
 ## Example API Specification
 
-This project provides an easy example of a CRUD REST service. The HTTP header should be like this `Content-Type: application/json; charset=utf-8`.
+This project provides an easy example of a CRUD REST service. 
+
+The Content-Type of HTTP header should be like this `Content-Type: application/json; charset=utf-8`.
 
 ### JSON Objects defined
 

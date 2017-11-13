@@ -53,11 +53,11 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM BOOK WHERE ID = $1";
   private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM BOOK WHERE ID = $1";
   private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO BOOK VALUES($1, $2, $3, $4) " +
-    "ON CONFLICT(ID) DO UPDATE SET TITLE = $2, CATEGORY = $3, PUBLICATIONDATE = $4";
+    "ON CONFLICT(ID) DO UPDATE SET TITLE = $2, CATEGORY = $3, PUBLICATION_DATE = $4";
   private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM BOOK WHERE TRUE";
   private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND TITLE = $";
   private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND CATEGORY = $";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATIONDATE = " AND PUBLICATIONDATE = $";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE = " AND PUBLICATION_DATE = $";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 
@@ -106,13 +106,14 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   @Override
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
     pgConnectionPool.rxQuery(SQL_FIND_BOOK_BY_ID, id)
+      .map(ResultSet::getRows)
       .subscribe(
-        resultSet -> {
-          if (resultSet.getRows().isEmpty()) {
+        rows -> {
+          if (rows.isEmpty()) {
             resultHandler.handle(Future.succeededFuture(new JsonObject()));
           } else {
-            JsonObject resultRow = resultSet.getRows().get(0);
-            resultHandler.handle(Future.succeededFuture(resultRow));
+            JsonObject dbResponse = rows.get(0);
+            resultHandler.handle(Future.succeededFuture(dbResponse));
           }
         }, throwable -> {
           LOGGER.error("Failed to get the book by id " + id, throwable);
@@ -146,7 +147,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     }
     if (publicationDate.isPresent()) {
       condition_count++;
-      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATIONDATE;
+      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE;
       dynamicSql += condition_count;
       params.add(publicationDate.get());
     }

@@ -32,7 +32,7 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-import static com.billyyccc.http.utils.RestResponseUtil.*;
+import static com.billyyccc.http.utils.RestApiUtil.*;
 
 /**
  * This class is handler for adding a new book.

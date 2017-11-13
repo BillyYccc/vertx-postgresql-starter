@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-import static com.billyyccc.http.utils.RestResponseUtil.*;
+import static com.billyyccc.http.utils.RestApiUtil.*;
 
 /**
  * This class is handler for handling an exception.

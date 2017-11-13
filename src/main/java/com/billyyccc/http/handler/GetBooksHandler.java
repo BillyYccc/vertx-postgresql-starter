@@ -31,7 +31,7 @@ import com.billyyccc.http.exception.ResourceNotFoundException;
 import io.vertx.core.Handler;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-import static com.billyyccc.http.utils.RestResponseUtil.*;
+import static com.billyyccc.http.utils.RestApiUtil.*;
 
 /**
  * This class is handler for getting all books or some books by conditions.
@@ -62,10 +62,10 @@ public class GetBooksHandler implements Handler<RoutingContext> {
               routingContext.fail(new ResourceNotFoundException("The books have not been found"));
               break;
             case 1:
-              restResponse(routingContext, 200, dbResponse.getJsonObject(0).toString());
+              restResponse(routingContext, 200, dBJsonToRestJson(dbResponse.getJsonObject(0)).encodePrettily());
               break;
             default:
-              restResponse(routingContext, 200, dbResponse.toString());
+              restResponse(routingContext, 200, dBJsonToRestJson(dbResponse).encodePrettily());
               break;
           }
         },

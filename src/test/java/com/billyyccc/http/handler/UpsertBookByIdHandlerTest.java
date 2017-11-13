@@ -51,10 +51,9 @@ import org.mockito.Mockito;
 
 @RunWith(VertxUnitRunner.class)
 public class UpsertBookByIdHandlerTest {
-  private Vertx vertx;
-
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
+  private Vertx vertx;
 
   @Before
   public void setUp(TestContext testContext) {
@@ -70,7 +69,7 @@ public class UpsertBookByIdHandlerTest {
     router.route().handler(BodyHandler.create());
     router.put("/books/:id").handler(new UpsertBookByIdHandler(bookDatabaseService));
 
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234);
+    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
 
   }
 

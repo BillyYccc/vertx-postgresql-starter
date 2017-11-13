@@ -50,10 +50,9 @@ import org.mockito.Mockito;
 
 @RunWith(VertxUnitRunner.class)
 public class GetBooksHandlerTest {
-  private Vertx vertx;
-
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
+  private Vertx vertx;
 
   @Before
   public void setUp(TestContext testContext) {
@@ -79,7 +78,7 @@ public class GetBooksHandlerTest {
 
     router.get("/books").handler(new GetBooksHandler(bookDatabaseService));
 
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234);
+    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
   }
 
   @After

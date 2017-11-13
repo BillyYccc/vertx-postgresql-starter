@@ -30,7 +30,7 @@ import com.billyyccc.http.exception.ResourceNotFoundException;
 import io.vertx.core.Handler;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-import static com.billyyccc.http.utils.RestResponseUtil.*;
+import static com.billyyccc.http.utils.RestApiUtil.*;
 
 /**
  * This class is handler for getting the specified book by bookId.
@@ -55,7 +55,7 @@ public class GetBookByIdHandler implements Handler<RoutingContext> {
           if (dbResponse.isEmpty()) {
             routingContext.fail(new ResourceNotFoundException("The book with id " + bookId + " can not be found"));
           } else {
-            restResponse(routingContext, 200, dbResponse.toString());
+            restResponse(routingContext, 200, dBJsonToRestJson(dbResponse).encodePrettily());
           }
         },
         throwable -> routingContext.fail(new BadRequestException(throwable))

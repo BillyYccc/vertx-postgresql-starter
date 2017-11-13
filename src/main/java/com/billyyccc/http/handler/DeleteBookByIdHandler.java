@@ -29,7 +29,7 @@ import com.billyyccc.http.exception.BadRequestException;
 import io.vertx.core.Handler;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-import static com.billyyccc.http.utils.RestResponseUtil.*;
+import static com.billyyccc.http.utils.RestApiUtil.*;
 
 /**
  * This class is handler for deleting a existing book.

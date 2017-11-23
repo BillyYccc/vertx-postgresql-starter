@@ -27,6 +27,7 @@ package com.billyyccc.database.impl;
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import com.julienviet.pgclient.PgPoolOptions;
+import com.julienviet.pgclient.ResultSet;
 import com.julienviet.reactivex.pgclient.PgClient;
 import com.julienviet.reactivex.pgclient.PgPool;
 import io.reactivex.SingleObserver;
@@ -38,7 +39,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.sql.ResultSet;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -68,10 +68,9 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     pgConnectionPool = rxPgClient.createPool(new PgPoolOptions().setMaxSize(20));
     this.pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection
-        .rxQuery(SQL_FIND_ALL_BOOKS)
+        .rxExecute(SQL_FIND_ALL_BOOKS)
         .doAfterTerminate(pgConnection::close)
-      ).subscribe(
-      resultSet -> resultHandler.handle(Future.succeededFuture(this)),
+      ).subscribe(resultSet -> resultHandler.handle(Future.succeededFuture(this)),
       throwable -> {
         LOGGER.error("Can not open a database connection", throwable);
         resultHandler.handle(Future.failedFuture(throwable));
@@ -80,10 +79,9 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService addNewBook(Book book, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxUpdate(SQL_ADD_NEW_BOOK,
+    pgConnectionPool.rxPreparedUpdate(SQL_ADD_NEW_BOOK,
       book.getId(), book.getTitle(), book.getCategory(), book.getPublicationDate())
-      .subscribe(
-        updateResult -> resultHandler.handle(Future.succeededFuture()),
+      .subscribe(updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to add a new book into database", throwable);
           resultHandler.handle(Future.failedFuture(throwable));
@@ -93,9 +91,8 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService deleteBookById(int id, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxUpdate(SQL_DELETE_BOOK_BY_ID, id)
-      .subscribe(
-        updateResult -> resultHandler.handle(Future.succeededFuture()),
+    pgConnectionPool.rxPreparedUpdate(SQL_DELETE_BOOK_BY_ID, id)
+      .subscribe(updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to delete the book by id " + id, throwable);
           resultHandler.handle(Future.failedFuture(throwable));
@@ -105,20 +102,19 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
-    pgConnectionPool.rxQuery(SQL_FIND_BOOK_BY_ID, id)
+    pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, id)
       .map(ResultSet::getRows)
-      .subscribe(
-        rows -> {
-          if (rows.isEmpty()) {
-            resultHandler.handle(Future.succeededFuture(new JsonObject()));
-          } else {
-            JsonObject dbResponse = rows.get(0);
-            resultHandler.handle(Future.succeededFuture(dbResponse));
-          }
-        }, throwable -> {
-          LOGGER.error("Failed to get the book by id " + id, throwable);
-          resultHandler.handle(Future.failedFuture(throwable));
-        });
+      .subscribe(rows -> {
+        if (rows.isEmpty()) {
+          resultHandler.handle(Future.succeededFuture(new JsonObject()));
+        } else {
+          JsonObject dbResponse = rows.get(0);
+          resultHandler.handle(Future.succeededFuture(dbResponse));
+        }
+      }, throwable -> {
+        LOGGER.error("Failed to get the book by id " + id, throwable);
+        resultHandler.handle(Future.failedFuture(throwable));
+      });
     return this;
   }
 
@@ -173,19 +169,19 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     };
     switch (condition_count) {
       case 0:
-        pgConnectionPool.rxQuery(dynamicSql).subscribe(singleObserver);
+        pgConnectionPool.query(dynamicSql).rxExecute().subscribe(singleObserver);
         break;
       case 1:
-        pgConnectionPool.rxQuery(dynamicSql, params.get(0)).subscribe(singleObserver);
+        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0)).subscribe(singleObserver);
         break;
       case 2:
-        pgConnectionPool.rxQuery(dynamicSql, params.get(0), params.get(1)).subscribe(singleObserver);
+        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0), params.get(1)).subscribe(singleObserver);
         break;
       case 3:
-        pgConnectionPool.rxQuery(dynamicSql, params.get(0), params.get(1), params.get(2)).subscribe(singleObserver);
+        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0), params.get(1), params.get(2)).subscribe(singleObserver);
         break;
       default:
-        pgConnectionPool.rxQuery(dynamicSql).subscribe(singleObserver);
+        pgConnectionPool.query(dynamicSql).rxExecute().subscribe(singleObserver);
         break;
     }
     return this;
@@ -193,7 +189,8 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxUpdate(SQL_UPSERT_BOOK_BY_ID, id, book.getTitle(), book.getCategory(), book.getPublicationDate())
+    pgConnectionPool.rxPreparedUpdate(SQL_UPSERT_BOOK_BY_ID,
+      id, book.getTitle(), book.getCategory(), book.getPublicationDate())
       .subscribe(
         updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {

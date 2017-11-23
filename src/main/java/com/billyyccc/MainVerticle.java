@@ -43,11 +43,12 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Future<Void> startFuture) throws Exception {
     Single<String> dbVerticleDeployment = vertx.rxDeployVerticle(PG_DATABASE_VERTICLE_IDENTIFIER,
-      new DeploymentOptions().setConfig(config()));
+      new DeploymentOptions().setConfig(config().getJsonObject("postgresql.config")));
 
     dbVerticleDeployment
+      .doOnError(startFuture::fail)
       .flatMap(deploymentId -> vertx.rxDeployVerticle(HTTP_SERVER_VERTICLE_IDENTIFIER,
-        new DeploymentOptions().setConfig(config())))
+        new DeploymentOptions().setConfig(config().getJsonObject("http.server.config"))))
       .subscribe(deploymentId -> startFuture.complete(),
         startFuture::fail);
   }

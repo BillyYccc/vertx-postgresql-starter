@@ -66,7 +66,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   public BookDatabaseServiceImpl(com.julienviet.pgclient.PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
     PgClient rxPgClient = new PgClient(pgClient);
     pgConnectionPool = rxPgClient.createPool(new PgPoolOptions().setMaxSize(20));
-    this.pgConnectionPool.rxGetConnection()
+    pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection
         .rxExecute(SQL_FIND_ALL_BOOKS)
         .doAfterTerminate(pgConnection::close)

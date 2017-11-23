@@ -52,7 +52,7 @@ import static com.billyyccc.http.EndPoints.*;
 
 public class HttpServerVerticle extends AbstractVerticle {
   private static final String CONFIG_HTTP_SERVER_PORT = "http.server.port";
-  private static final String CONFIG_DB_EB_QUEUE = "library.db.queue";
+  private static final String CONFIG_DB_EB_QUEUE = "library.db.eb.address";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerVerticle.class);
 
@@ -60,7 +60,7 @@ public class HttpServerVerticle extends AbstractVerticle {
   public void start(Future<Void> startFuture) throws Exception {
     HttpServer httpServer = vertx.createHttpServer();
 
-    BookDatabaseService bookDatabaseService = createProxy(vertx.getDelegate(), CONFIG_DB_EB_QUEUE);
+    BookDatabaseService bookDatabaseService = createProxy(vertx.getDelegate(), config().getString(CONFIG_DB_EB_QUEUE));
 
     Router router = Router.router(vertx);
 
@@ -93,8 +93,7 @@ public class HttpServerVerticle extends AbstractVerticle {
     int httpServerPort = config().getInteger(CONFIG_HTTP_SERVER_PORT, 8080);
     httpServer.requestHandler(router::accept)
       .rxListen(httpServerPort)
-      .subscribe(
-        server -> {
+      .subscribe(server -> {
           LOGGER.info("HTTP server is running on port " + httpServerPort);
           startFuture.complete();
         },

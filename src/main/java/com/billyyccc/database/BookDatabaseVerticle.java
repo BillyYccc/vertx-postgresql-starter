@@ -43,7 +43,7 @@ public class BookDatabaseVerticle extends AbstractVerticle {
   private static final String CONFIG_PG_USERNAME = "postgresql.username";
   private static final String CONFIG_PG_PASSWORD = "postgresql.password";
 
-  private static final String CONFIG_DB_EB_QUEUE = "library.db.queue";
+  private static final String CONFIG_DB_EB_QUEUE = "library.db.eb.address";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseVerticle.class);
 
@@ -58,19 +58,26 @@ public class BookDatabaseVerticle extends AbstractVerticle {
 
     PgClient pgClient = PgClient.create(vertx, pgClientOptions);
 
+    String databaseEbAddress = config().getString(CONFIG_DB_EB_QUEUE);
+
     BookDatabaseService.create(pgClient, result -> {
       if (result.succeeded()) {
         // register the database service
         new ServiceBinder(vertx)
-          .setAddress(CONFIG_DB_EB_QUEUE)
-          .register(BookDatabaseService.class, result.result());
-        LOGGER.info("PostgreSQL database service is successfully established");
-        startFuture.complete();
+          .setAddress(databaseEbAddress)
+          .register(BookDatabaseService.class, result.result())
+          .exceptionHandler(throwable -> {
+            LOGGER.error("Failed to establish PostgreSQL database service", throwable);
+            startFuture.fail(throwable);
+          })
+          .completionHandler(res -> {
+            LOGGER.info("PostgreSQL database service is successfully established in \"" + databaseEbAddress + "\"");
+            startFuture.complete();
+          });
       } else {
-        LOGGER.error("PostgreSQL database service failed to be established", result.cause());
+        LOGGER.error("Failed to initiate the connection to database", result.cause());
         startFuture.fail(result.cause());
       }
     });
-
   }
 }

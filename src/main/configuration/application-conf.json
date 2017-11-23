@@ -1,8 +1,14 @@
 {
-  "http.server.port": 8080,
-  "postgresql.host": "postgresql",
-  "postgresql.port": 5432,
-  "postgresql.database": "library",
-  "postgresql.username": "billy",
-  "postgresql.password": "abc123"
+  "http.server.config": {
+    "http.server.port": 8080,
+    "library.db.eb.address": "library.db.queue"
+  },
+  "postgresql.config": {
+    "library.db.eb.address": "library.db.queue",
+    "postgresql.host": "postgresql",
+    "postgresql.port": 5432,
+    "postgresql.database": "library",
+    "postgresql.username": "billy",
+    "postgresql.password": "abc123"
+  }
 }

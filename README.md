@@ -48,3 +48,7 @@ The Domain Logic is organized with [Transaction Script](https://martinfowler.com
 ##### Database Degisn
 
 ![database](database.png)
+
+## TODO
+
+- [ ] Find a way to improve Data Access Layer with easier usage

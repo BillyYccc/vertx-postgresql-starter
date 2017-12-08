@@ -26,12 +26,12 @@ package com.billyyccc.database.impl;
 
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
+import com.julienviet.pgclient.PgIterator;
 import com.julienviet.pgclient.PgPoolOptions;
-import com.julienviet.pgclient.ResultSet;
 import com.julienviet.reactivex.pgclient.PgClient;
 import com.julienviet.reactivex.pgclient.PgPool;
-import io.reactivex.SingleObserver;
-import io.reactivex.disposables.Disposable;
+import com.julienviet.reactivex.pgclient.PgResult;
+import com.julienviet.reactivex.pgclient.Tuple;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -40,7 +40,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,19 +67,20 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     pgConnectionPool = rxPgClient.createPool(new PgPoolOptions().setMaxSize(20));
     pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection
-        .rxExecute(SQL_FIND_ALL_BOOKS)
-        .doAfterTerminate(pgConnection::close)
-      ).subscribe(resultSet -> resultHandler.handle(Future.succeededFuture(this)),
-      throwable -> {
-        LOGGER.error("Can not open a database connection", throwable);
-        resultHandler.handle(Future.failedFuture(throwable));
-      });
+        .createQuery(SQL_FIND_ALL_BOOKS)
+        .rxExecute()
+        .doAfterTerminate(pgConnection::close))
+      .subscribe(result -> resultHandler.handle(Future.succeededFuture(this)),
+        throwable -> {
+          LOGGER.error("Can not open a database connection", throwable);
+          resultHandler.handle(Future.failedFuture(throwable));
+        });
   }
 
   @Override
   public BookDatabaseService addNewBook(Book book, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxPreparedUpdate(SQL_ADD_NEW_BOOK,
-      book.getId(), book.getTitle(), book.getCategory(), book.getPublicationDate())
+    pgConnectionPool.rxPreparedQuery(SQL_ADD_NEW_BOOK,
+      Tuple.of(book.getId(), book.getTitle(), book.getCategory(), book.getPublicationDate()))
       .subscribe(updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to add a new book into database", throwable);
@@ -91,7 +91,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService deleteBookById(int id, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxPreparedUpdate(SQL_DELETE_BOOK_BY_ID, id)
+    pgConnectionPool.rxPreparedQuery(SQL_DELETE_BOOK_BY_ID, Tuple.of(id))
       .subscribe(updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to delete the book by id " + id, throwable);
@@ -102,13 +102,14 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
-    pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, id)
-      .map(ResultSet::getRows)
-      .subscribe(rows -> {
-        if (rows.isEmpty()) {
+    pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
+      .map(PgResult::getDelegate)
+      .map(this::pgResultToJson)
+      .subscribe(jsonArray -> {
+        if (jsonArray.size() == 0) {
           resultHandler.handle(Future.succeededFuture(new JsonObject()));
         } else {
-          JsonObject dbResponse = rows.get(0);
+          JsonObject dbResponse = jsonArray.getJsonObject(0);
           resultHandler.handle(Future.succeededFuture(dbResponse));
         }
       }, throwable -> {
@@ -125,72 +126,45 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     Optional<String> publicationDate = Optional.ofNullable(book.getPublicationDate());
 
     // Concat the SQL by conditions
-    // TODO the logic is not so good :(
-    int condition_count = 0;
+    // TODO it bothers you when you build dynamic sql manually
+    int count = 0;
     String dynamicSql = SQL_FIND_ALL_BOOKS;
-    List<Object> params = new LinkedList<>();
+    Tuple params = Tuple.tuple();
     if (title.isPresent()) {
-      condition_count++;
+      count++;
       dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_TITLE;
-      dynamicSql += condition_count;
-      params.add(title.get());
+      dynamicSql += count;
+      params.addString(title.get());
     }
     if (category.isPresent()) {
-      condition_count++;
+      count++;
       dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_CATEGORY;
-      dynamicSql += condition_count;
-      params.add(category.get());
+      dynamicSql += count;
+      params.addString(category.get());
     }
     if (publicationDate.isPresent()) {
-      condition_count++;
+      count++;
       dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE;
-      dynamicSql += condition_count;
-      params.add(publicationDate.get());
+      dynamicSql += count;
+      params.addString(publicationDate.get());
     }
-
-    SingleObserver<? super ResultSet> singleObserver = new SingleObserver<ResultSet>() {
-      @Override
-      public void onSubscribe(Disposable disposable) {
-        // disposable
-      }
-
-      @Override
-      public void onSuccess(ResultSet resultSet) {
-        JsonArray books = new JsonArray(resultSet.getRows());
-        resultHandler.handle(Future.succeededFuture(books));
-      }
-
-      @Override
-      public void onError(Throwable throwable) {
-        LOGGER.error("Failed to get the filtered books by the following conditions"
-          + params.toString(), throwable);
-        resultHandler.handle(Future.failedFuture(throwable));
-      }
-    };
-    switch (condition_count) {
-      case 0:
-        pgConnectionPool.query(dynamicSql).rxExecute().subscribe(singleObserver);
-        break;
-      case 1:
-        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0)).subscribe(singleObserver);
-        break;
-      case 2:
-        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0), params.get(1)).subscribe(singleObserver);
-        break;
-      case 3:
-        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0), params.get(1), params.get(2)).subscribe(singleObserver);
-        break;
-      default:
-        pgConnectionPool.query(dynamicSql).rxExecute().subscribe(singleObserver);
-        break;
-    }
+    pgConnectionPool.rxPreparedQuery(dynamicSql, params)
+      .map(PgResult::getDelegate)
+      .map(this::pgResultToJson)
+      .subscribe(
+        jsonArray -> resultHandler.handle(Future.succeededFuture(jsonArray)),
+        throwable -> {
+          LOGGER.error("Failed to get the filtered books by the following conditions"
+            + params.toString(), throwable);
+          resultHandler.handle(Future.failedFuture(throwable));
+        });
     return this;
   }
 
   @Override
   public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxPreparedUpdate(SQL_UPSERT_BOOK_BY_ID,
-      id, book.getTitle(), book.getCategory(), book.getPublicationDate())
+    pgConnectionPool.rxPreparedQuery(SQL_UPSERT_BOOK_BY_ID,
+      Tuple.of(id, book.getTitle(), book.getCategory(), book.getPublicationDate()))
       .subscribe(
         updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
@@ -199,5 +173,23 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
         }
       );
     return this;
+  }
+
+  // Transfer pgResult To json
+  // TODO use JSONB in PG to get rid of data transfer(pgResult->DTO->JSON->REST API)
+  private JsonArray pgResultToJson(com.julienviet.pgclient.PgResult pgResult) {
+    PgIterator pgIterator = pgResult.iterator();
+    JsonArray jsonArray = new JsonArray();
+    List<String> columnName = pgResult.columnsNames();
+    while (pgIterator.hasNext()) {
+      JsonObject row = new JsonObject();
+      com.julienviet.pgclient.Tuple rowValue = (com.julienviet.pgclient.Tuple) pgIterator.next();
+      row.put(columnName.get(0), rowValue.getInteger(0));
+      row.put(columnName.get(1), rowValue.getString(1));
+      row.put(columnName.get(2), rowValue.getString(2));
+      row.put(columnName.get(3), rowValue.getTemporal(3).toString());
+      jsonArray.add(row);
+    }
+    return jsonArray;
   }
 }

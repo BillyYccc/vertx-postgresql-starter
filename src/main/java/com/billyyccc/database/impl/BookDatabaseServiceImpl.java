@@ -27,8 +27,7 @@ package com.billyyccc.database.impl;
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import com.julienviet.pgclient.PgIterator;
-import com.julienviet.pgclient.PgPoolOptions;
-import com.julienviet.reactivex.pgclient.PgClient;
+import com.julienviet.pgclient.Row;
 import com.julienviet.reactivex.pgclient.PgPool;
 import com.julienviet.reactivex.pgclient.PgResult;
 import com.julienviet.reactivex.pgclient.Tuple;
@@ -40,6 +39,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,13 +64,11 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   private final PgPool pgConnectionPool;
 
-  public BookDatabaseServiceImpl(com.julienviet.pgclient.PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
-    PgClient rxPgClient = new PgClient(pgClient);
-    pgConnectionPool = rxPgClient.createPool(new PgPoolOptions().setMaxSize(20));
+  public BookDatabaseServiceImpl(com.julienviet.pgclient.PgPool pgPool, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
+    pgConnectionPool = new PgPool(pgPool);
     pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection
-        .createQuery(SQL_FIND_ALL_BOOKS)
-        .rxExecute()
+        .rxQuery(SQL_FIND_ALL_BOOKS)
         .doAfterTerminate(pgConnection::close))
       .subscribe(result -> resultHandler.handle(Future.succeededFuture(this)),
         throwable -> {
@@ -80,7 +80,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   @Override
   public BookDatabaseService addNewBook(Book book, Handler<AsyncResult<Void>> resultHandler) {
     pgConnectionPool.rxPreparedQuery(SQL_ADD_NEW_BOOK,
-      Tuple.of(book.getId(), book.getTitle(), book.getCategory(), book.getPublicationDate()))
+      Tuple.of(book.getId(), book.getTitle(), book.getCategory(), LocalDate.parse(book.getPublicationDate())))
       .subscribe(updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to add a new book into database", throwable);
@@ -104,8 +104,8 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
     pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
       .map(PgResult::getDelegate)
-      .map(this::pgResultToJson)
-      .subscribe(jsonArray -> {
+      .subscribe(pgResult -> {
+        JsonArray jsonArray = transformPgResultToJson(pgResult);
         if (jsonArray.size() == 0) {
           resultHandler.handle(Future.succeededFuture(new JsonObject()));
         } else {
@@ -121,14 +121,49 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBooks(Book book, Handler<AsyncResult<JsonArray>> resultHandler) {
+    //TODO replace with tuple or pair
+    List list = generateDynamicQuery(SQL_FIND_ALL_BOOKS, book);
+    String preparedQuery = (String) list.get(0);
+    Tuple params = (Tuple) list.get(1);
+
+    pgConnectionPool.rxPreparedQuery(preparedQuery, params)
+      .map(PgResult::getDelegate)
+      .subscribe(
+        pgResult -> {
+          JsonArray jsonArray = transformPgResultToJson(pgResult);
+          resultHandler.handle(Future.succeededFuture(jsonArray));
+        },
+        throwable -> {
+          LOGGER.error("Failed to get the filtered books by the following conditions"
+            + params.toString(), throwable);
+          resultHandler.handle(Future.failedFuture(throwable));
+        });
+    return this;
+  }
+
+  @Override
+  public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
+    pgConnectionPool.rxPreparedQuery(SQL_UPSERT_BOOK_BY_ID,
+      Tuple.of(id, book.getTitle(), book.getCategory(), LocalDate.parse(book.getPublicationDate())))
+      .subscribe(
+        updateResult -> resultHandler.handle(Future.succeededFuture()),
+        throwable -> {
+          LOGGER.error("Failed to upsert the book by id " + book.getId(), throwable);
+          resultHandler.handle(Future.failedFuture(throwable));
+        }
+      );
+    return this;
+  }
+
+  // generate query with dynamic where clause in a manual way
+  private List generateDynamicQuery(String rawSql, Book book) {
     Optional<String> title = Optional.ofNullable(book.getTitle());
     Optional<String> category = Optional.ofNullable(book.getCategory());
     Optional<String> publicationDate = Optional.ofNullable(book.getPublicationDate());
 
     // Concat the SQL by conditions
-    // TODO it bothers you when you build dynamic sql manually
     int count = 0;
-    String dynamicSql = SQL_FIND_ALL_BOOKS;
+    String dynamicSql = rawSql;
     Tuple params = Tuple.tuple();
     if (title.isPresent()) {
       count++;
@@ -146,48 +181,29 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
       count++;
       dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE;
       dynamicSql += count;
-      params.addString(publicationDate.get());
+      params.addValue(publicationDate.get());
     }
-    pgConnectionPool.rxPreparedQuery(dynamicSql, params)
-      .map(PgResult::getDelegate)
-      .map(this::pgResultToJson)
-      .subscribe(
-        jsonArray -> resultHandler.handle(Future.succeededFuture(jsonArray)),
-        throwable -> {
-          LOGGER.error("Failed to get the filtered books by the following conditions"
-            + params.toString(), throwable);
-          resultHandler.handle(Future.failedFuture(throwable));
-        });
-    return this;
+    //TODO will use Tuple or Pair to replace List
+    List list = new ArrayList();
+    list.add(dynamicSql);
+    list.add(params);
+    return list;
   }
 
-  @Override
-  public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxPreparedQuery(SQL_UPSERT_BOOK_BY_ID,
-      Tuple.of(id, book.getTitle(), book.getCategory(), book.getPublicationDate()))
-      .subscribe(
-        updateResult -> resultHandler.handle(Future.succeededFuture()),
-        throwable -> {
-          LOGGER.error("Failed to upsert the book by id " + book.getId(), throwable);
-          resultHandler.handle(Future.failedFuture(throwable));
-        }
-      );
-    return this;
-  }
-
-  // Transfer pgResult To json
-  // TODO use JSONB in PG to get rid of data transfer(pgResult->DTO->JSON->REST API)
-  private JsonArray pgResultToJson(com.julienviet.pgclient.PgResult pgResult) {
+  private JsonArray transformPgResultToJson(com.julienviet.pgclient.PgResult<String> pgResult) {
     PgIterator pgIterator = pgResult.iterator();
     JsonArray jsonArray = new JsonArray();
     List<String> columnName = pgResult.columnsNames();
     while (pgIterator.hasNext()) {
       JsonObject row = new JsonObject();
-      com.julienviet.pgclient.Tuple rowValue = (com.julienviet.pgclient.Tuple) pgIterator.next();
+      Row rowValue = (Row) pgIterator.next();
+      Optional<String> title = Optional.ofNullable(rowValue.getString(1));
+      Optional<String> category = Optional.ofNullable(rowValue.getString(2));
+      Optional<LocalDate> publicationDate = Optional.ofNullable(rowValue.getLocalDate(3));
       row.put(columnName.get(0), rowValue.getInteger(0));
-      row.put(columnName.get(1), rowValue.getString(1));
-      row.put(columnName.get(2), rowValue.getString(2));
-      row.put(columnName.get(3), rowValue.getTemporal(3).toString());
+      title.ifPresent(v -> row.put(columnName.get(1), v));
+      category.ifPresent(v -> row.put(columnName.get(2), v));
+      publicationDate.ifPresent(v -> row.put(columnName.get(3), v.format(DateTimeFormatter.ISO_LOCAL_DATE)));
       jsonArray.add(row);
     }
     return jsonArray;

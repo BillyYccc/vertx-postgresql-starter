@@ -9,6 +9,7 @@
     "postgresql.port": 5432,
     "postgresql.database": "library",
     "postgresql.username": "billy",
-    "postgresql.password": "abc123"
+    "postgresql.password": "abc123",
+    "postgresql.pool.maxsize": 20
   }
 }

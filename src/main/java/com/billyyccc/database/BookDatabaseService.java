@@ -26,7 +26,7 @@ package com.billyyccc.database;
 
 import com.billyyccc.database.impl.BookDatabaseServiceImpl;
 import com.billyyccc.entity.Book;
-import com.julienviet.pgclient.PgClient;
+import com.julienviet.pgclient.PgPool;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
@@ -46,8 +46,8 @@ import io.vertx.core.json.JsonObject;
 public interface BookDatabaseService {
 
   @GenIgnore
-  static BookDatabaseService create(PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
-    return new BookDatabaseServiceImpl(pgClient, resultHandler);
+  static BookDatabaseService create(PgPool pgPool, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
+    return new BookDatabaseServiceImpl(pgPool, resultHandler);
   }
 
   @GenIgnore

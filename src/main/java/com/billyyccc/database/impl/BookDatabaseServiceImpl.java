@@ -26,12 +26,11 @@ package com.billyyccc.database.impl;
 
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
-import com.julienviet.pgclient.PgPoolOptions;
-import com.julienviet.pgclient.ResultSet;
-import com.julienviet.reactivex.pgclient.PgClient;
+import com.julienviet.pgclient.PgIterator;
+import com.julienviet.pgclient.Row;
 import com.julienviet.reactivex.pgclient.PgPool;
-import io.reactivex.SingleObserver;
-import io.reactivex.disposables.Disposable;
+import com.julienviet.reactivex.pgclient.PgResult;
+import com.julienviet.reactivex.pgclient.Tuple;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -40,7 +39,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-import java.util.LinkedList;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,38 +50,37 @@ import java.util.Optional;
  */
 
 public class BookDatabaseServiceImpl implements BookDatabaseService {
-  private static final String SQL_ADD_NEW_BOOK = "INSERT INTO BOOK VALUES ($1, $2, $3, $4)";
-  private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM BOOK WHERE ID = $1";
-  private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM BOOK WHERE ID = $1";
-  private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO BOOK VALUES($1, $2, $3, $4) " +
-    "ON CONFLICT(ID) DO UPDATE SET TITLE = $2, CATEGORY = $3, PUBLICATION_DATE = $4";
-  private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM BOOK WHERE TRUE";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND TITLE = $";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND CATEGORY = $";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE = " AND PUBLICATION_DATE = $";
+  private static final String SQL_ADD_NEW_BOOK = "INSERT INTO book VALUES ($1, $2, $3, $4)";
+  private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM book WHERE id = $1";
+  private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM book WHERE id = $1";
+  private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO book VALUES($1, $2, $3, $4) " +
+    "ON CONFLICT(id) DO UPDATE SET title = $2, category = $3, publication_date = $4";
+  private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM book WHERE TRUE";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND title = $";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND category = $";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE = " AND publication_date = $";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 
   private final PgPool pgConnectionPool;
 
-  public BookDatabaseServiceImpl(com.julienviet.pgclient.PgClient pgClient, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
-    PgClient rxPgClient = new PgClient(pgClient);
-    pgConnectionPool = rxPgClient.createPool(new PgPoolOptions().setMaxSize(20));
+  public BookDatabaseServiceImpl(com.julienviet.pgclient.PgPool pgPool, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
+    pgConnectionPool = new PgPool(pgPool);
     pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection
-        .rxExecute(SQL_FIND_ALL_BOOKS)
-        .doAfterTerminate(pgConnection::close)
-      ).subscribe(resultSet -> resultHandler.handle(Future.succeededFuture(this)),
-      throwable -> {
-        LOGGER.error("Can not open a database connection", throwable);
-        resultHandler.handle(Future.failedFuture(throwable));
-      });
+        .rxQuery(SQL_FIND_ALL_BOOKS)
+        .doAfterTerminate(pgConnection::close))
+      .subscribe(result -> resultHandler.handle(Future.succeededFuture(this)),
+        throwable -> {
+          LOGGER.error("Can not open a database connection", throwable);
+          resultHandler.handle(Future.failedFuture(throwable));
+        });
   }
 
   @Override
   public BookDatabaseService addNewBook(Book book, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxPreparedUpdate(SQL_ADD_NEW_BOOK,
-      book.getId(), book.getTitle(), book.getCategory(), book.getPublicationDate())
+    pgConnectionPool.rxPreparedQuery(SQL_ADD_NEW_BOOK,
+      Tuple.of(book.getId(), book.getTitle(), book.getCategory(), LocalDate.parse(book.getPublicationDate())))
       .subscribe(updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to add a new book into database", throwable);
@@ -91,7 +91,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService deleteBookById(int id, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxPreparedUpdate(SQL_DELETE_BOOK_BY_ID, id)
+    pgConnectionPool.rxPreparedQuery(SQL_DELETE_BOOK_BY_ID, Tuple.of(id))
       .subscribe(updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
           LOGGER.error("Failed to delete the book by id " + id, throwable);
@@ -102,13 +102,14 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
-    pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, id)
-      .map(ResultSet::getRows)
-      .subscribe(rows -> {
-        if (rows.isEmpty()) {
+    pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
+      .map(PgResult::getDelegate)
+      .subscribe(pgResult -> {
+        JsonArray jsonArray = transformPgResultToJson(pgResult);
+        if (jsonArray.size() == 0) {
           resultHandler.handle(Future.succeededFuture(new JsonObject()));
         } else {
-          JsonObject dbResponse = rows.get(0);
+          JsonObject dbResponse = jsonArray.getJsonObject(0);
           resultHandler.handle(Future.succeededFuture(dbResponse));
         }
       }, throwable -> {
@@ -120,77 +121,30 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBooks(Book book, Handler<AsyncResult<JsonArray>> resultHandler) {
-    Optional<String> title = Optional.ofNullable(book.getTitle());
-    Optional<String> category = Optional.ofNullable(book.getCategory());
-    Optional<String> publicationDate = Optional.ofNullable(book.getPublicationDate());
+    //TODO replace with tuple or pair
+    List list = generateDynamicQuery(SQL_FIND_ALL_BOOKS, book);
+    String preparedQuery = (String) list.get(0);
+    Tuple params = (Tuple) list.get(1);
 
-    // Concat the SQL by conditions
-    // TODO the logic is not so good :(
-    int condition_count = 0;
-    String dynamicSql = SQL_FIND_ALL_BOOKS;
-    List<Object> params = new LinkedList<>();
-    if (title.isPresent()) {
-      condition_count++;
-      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_TITLE;
-      dynamicSql += condition_count;
-      params.add(title.get());
-    }
-    if (category.isPresent()) {
-      condition_count++;
-      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_CATEGORY;
-      dynamicSql += condition_count;
-      params.add(category.get());
-    }
-    if (publicationDate.isPresent()) {
-      condition_count++;
-      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE;
-      dynamicSql += condition_count;
-      params.add(publicationDate.get());
-    }
-
-    SingleObserver<? super ResultSet> singleObserver = new SingleObserver<ResultSet>() {
-      @Override
-      public void onSubscribe(Disposable disposable) {
-        // disposable
-      }
-
-      @Override
-      public void onSuccess(ResultSet resultSet) {
-        JsonArray books = new JsonArray(resultSet.getRows());
-        resultHandler.handle(Future.succeededFuture(books));
-      }
-
-      @Override
-      public void onError(Throwable throwable) {
-        LOGGER.error("Failed to get the filtered books by the following conditions"
-          + params.toString(), throwable);
-        resultHandler.handle(Future.failedFuture(throwable));
-      }
-    };
-    switch (condition_count) {
-      case 0:
-        pgConnectionPool.query(dynamicSql).rxExecute().subscribe(singleObserver);
-        break;
-      case 1:
-        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0)).subscribe(singleObserver);
-        break;
-      case 2:
-        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0), params.get(1)).subscribe(singleObserver);
-        break;
-      case 3:
-        pgConnectionPool.rxPreparedQuery(dynamicSql, params.get(0), params.get(1), params.get(2)).subscribe(singleObserver);
-        break;
-      default:
-        pgConnectionPool.query(dynamicSql).rxExecute().subscribe(singleObserver);
-        break;
-    }
+    pgConnectionPool.rxPreparedQuery(preparedQuery, params)
+      .map(PgResult::getDelegate)
+      .subscribe(
+        pgResult -> {
+          JsonArray jsonArray = transformPgResultToJson(pgResult);
+          resultHandler.handle(Future.succeededFuture(jsonArray));
+        },
+        throwable -> {
+          LOGGER.error("Failed to get the filtered books by the following conditions"
+            + params.toString(), throwable);
+          resultHandler.handle(Future.failedFuture(throwable));
+        });
     return this;
   }
 
   @Override
   public BookDatabaseService upsertBookById(int id, Book book, Handler<AsyncResult<Void>> resultHandler) {
-    pgConnectionPool.rxPreparedUpdate(SQL_UPSERT_BOOK_BY_ID,
-      id, book.getTitle(), book.getCategory(), book.getPublicationDate())
+    pgConnectionPool.rxPreparedQuery(SQL_UPSERT_BOOK_BY_ID,
+      Tuple.of(id, book.getTitle(), book.getCategory(), LocalDate.parse(book.getPublicationDate())))
       .subscribe(
         updateResult -> resultHandler.handle(Future.succeededFuture()),
         throwable -> {
@@ -199,5 +153,59 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
         }
       );
     return this;
+  }
+
+  // generate query with dynamic where clause in a manual way
+  private List generateDynamicQuery(String rawSql, Book book) {
+    Optional<String> title = Optional.ofNullable(book.getTitle());
+    Optional<String> category = Optional.ofNullable(book.getCategory());
+    Optional<String> publicationDate = Optional.ofNullable(book.getPublicationDate());
+
+    // Concat the SQL by conditions
+    int count = 0;
+    String dynamicSql = rawSql;
+    Tuple params = Tuple.tuple();
+    if (title.isPresent()) {
+      count++;
+      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_TITLE;
+      dynamicSql += count;
+      params.addString(title.get());
+    }
+    if (category.isPresent()) {
+      count++;
+      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_CATEGORY;
+      dynamicSql += count;
+      params.addString(category.get());
+    }
+    if (publicationDate.isPresent()) {
+      count++;
+      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE;
+      dynamicSql += count;
+      params.addValue(publicationDate.get());
+    }
+    //TODO will use Tuple or Pair to replace List
+    List list = new ArrayList();
+    list.add(dynamicSql);
+    list.add(params);
+    return list;
+  }
+
+  private JsonArray transformPgResultToJson(com.julienviet.pgclient.PgResult<String> pgResult) {
+    PgIterator pgIterator = pgResult.iterator();
+    JsonArray jsonArray = new JsonArray();
+    List<String> columnName = pgResult.columnsNames();
+    while (pgIterator.hasNext()) {
+      JsonObject row = new JsonObject();
+      Row rowValue = (Row) pgIterator.next();
+      Optional<String> title = Optional.ofNullable(rowValue.getString(1));
+      Optional<String> category = Optional.ofNullable(rowValue.getString(2));
+      Optional<LocalDate> publicationDate = Optional.ofNullable(rowValue.getLocalDate(3));
+      row.put(columnName.get(0), rowValue.getInteger(0));
+      title.ifPresent(v -> row.put(columnName.get(1), v));
+      category.ifPresent(v -> row.put(columnName.get(2), v));
+      publicationDate.ifPresent(v -> row.put(columnName.get(3), v.format(DateTimeFormatter.ISO_LOCAL_DATE)));
+      jsonArray.add(row);
+    }
+    return jsonArray;
   }
 }

@@ -50,15 +50,15 @@ import java.util.Optional;
  */
 
 public class BookDatabaseServiceImpl implements BookDatabaseService {
-  private static final String SQL_ADD_NEW_BOOK = "INSERT INTO BOOK VALUES ($1, $2, $3, $4)";
-  private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM BOOK WHERE ID = $1";
-  private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM BOOK WHERE ID = $1";
-  private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO BOOK VALUES($1, $2, $3, $4) " +
-    "ON CONFLICT(ID) DO UPDATE SET TITLE = $2, CATEGORY = $3, PUBLICATION_DATE = $4";
-  private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM BOOK WHERE TRUE";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND TITLE = $";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND CATEGORY = $";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE = " AND PUBLICATION_DATE = $";
+  private static final String SQL_ADD_NEW_BOOK = "INSERT INTO book VALUES ($1, $2, $3, $4)";
+  private static final String SQL_DELETE_BOOK_BY_ID = "DELETE FROM book WHERE id = $1";
+  private static final String SQL_FIND_BOOK_BY_ID = "SELECT * FROM book WHERE id = $1";
+  private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO book VALUES($1, $2, $3, $4) " +
+    "ON CONFLICT(id) DO UPDATE SET title = $2, category = $3, publication_date = $4";
+  private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM book WHERE TRUE";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND title = $";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND category = $";
+  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE = " AND publication_date = $";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 

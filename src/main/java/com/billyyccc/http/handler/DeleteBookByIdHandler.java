@@ -52,6 +52,5 @@ public class DeleteBookByIdHandler implements Handler<RoutingContext> {
       .subscribe(
         () -> restResponse(routingContext, 200),
         throwable -> routingContext.fail(new BadRequestException(throwable)));
-
   }
 }

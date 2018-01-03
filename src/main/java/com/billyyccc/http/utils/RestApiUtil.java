@@ -1,5 +1,7 @@
 package com.billyyccc.http.utils;
 
+import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
@@ -29,5 +31,14 @@ public class RestApiUtil {
   public static JsonArray dBJsonToRestJson(JsonArray dbJsonArray) {
     return new JsonArray(dbJsonArray.encodePrettily()
       .replace("publication_date", "publicationDate"));
+  }
+
+  public static <T> T decodeBodyToObject(RoutingContext routingContext, Class<T> clazz) {
+    try {
+      return Json.decodeValue(routingContext.getBodyAsString("UTF-8"), clazz);
+    } catch (DecodeException exception) {
+      routingContext.fail(exception);
+      return null;
+    }
   }
 }

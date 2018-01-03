@@ -28,8 +28,6 @@ import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import com.billyyccc.http.exception.BadRequestException;
 import io.vertx.core.Handler;
-import io.vertx.core.json.DecodeException;
-import io.vertx.core.json.Json;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 import static com.billyyccc.http.utils.RestApiUtil.*;
@@ -49,17 +47,11 @@ public class AddBookHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext routingContext) {
-    try {
-      Book book = Json.decodeValue(routingContext.getBodyAsString("UTF-8"), Book.class);
-      bookDatabaseService.rxAddNewBook(book)
-        .subscribe(
-          () -> restResponse(routingContext, 200, book.toString()),
-          throwable -> routingContext.fail(new BadRequestException(throwable)));
-    } catch (DecodeException exception) {
-      routingContext.fail(exception);
-      exception.printStackTrace();
-    }
+    Book book = decodeBodyToObject(routingContext, Book.class);
 
-
+    bookDatabaseService.rxAddNewBook(book)
+      .subscribe(
+        () -> restResponse(routingContext, 200, book.toString()),
+        throwable -> routingContext.fail(new BadRequestException(throwable)));
   }
 }

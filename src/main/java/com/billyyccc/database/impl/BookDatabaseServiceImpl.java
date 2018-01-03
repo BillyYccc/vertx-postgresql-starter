@@ -26,8 +26,6 @@ package com.billyyccc.database.impl;
 
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
-import com.julienviet.pgclient.PgIterator;
-import com.julienviet.pgclient.Row;
 import com.julienviet.reactivex.pgclient.PgPool;
 import com.julienviet.reactivex.pgclient.PgResult;
 import com.julienviet.reactivex.pgclient.Tuple;
@@ -40,10 +38,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+
+import static com.billyyccc.database.utils.BookDatabaseServiceUtils.*;
 
 /**
  * @author Billy Yuan <billy112487983@gmail.com>
@@ -56,9 +52,6 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO book VALUES($1, $2, $3, $4) " +
     "ON CONFLICT(id) DO UPDATE SET title = $2, category = $3, publication_date = $4";
   private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM book WHERE TRUE";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND title = $";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND category = $";
-  private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE = " AND publication_date = $";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 
@@ -121,10 +114,9 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBooks(Book book, Handler<AsyncResult<JsonArray>> resultHandler) {
-    //TODO replace with tuple or pair
-    List list = generateDynamicQuery(SQL_FIND_ALL_BOOKS, book);
-    String preparedQuery = (String) list.get(0);
-    Tuple params = (Tuple) list.get(1);
+    DynamicQuery dynamicQuery = generateDynamicQuery(SQL_FIND_ALL_BOOKS, book);
+    String preparedQuery = dynamicQuery.getPreparedQuery();
+    Tuple params = dynamicQuery.getParams();
 
     pgConnectionPool.rxPreparedQuery(preparedQuery, params)
       .map(PgResult::getDelegate)
@@ -153,59 +145,5 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
         }
       );
     return this;
-  }
-
-  // generate query with dynamic where clause in a manual way
-  private List generateDynamicQuery(String rawSql, Book book) {
-    Optional<String> title = Optional.ofNullable(book.getTitle());
-    Optional<String> category = Optional.ofNullable(book.getCategory());
-    Optional<String> publicationDate = Optional.ofNullable(book.getPublicationDate());
-
-    // Concat the SQL by conditions
-    int count = 0;
-    String dynamicSql = rawSql;
-    Tuple params = Tuple.tuple();
-    if (title.isPresent()) {
-      count++;
-      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_TITLE;
-      dynamicSql += count;
-      params.addString(title.get());
-    }
-    if (category.isPresent()) {
-      count++;
-      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_CATEGORY;
-      dynamicSql += count;
-      params.addString(category.get());
-    }
-    if (publicationDate.isPresent()) {
-      count++;
-      dynamicSql += SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE;
-      dynamicSql += count;
-      params.addValue(publicationDate.get());
-    }
-    //TODO will use Tuple or Pair to replace List
-    List list = new ArrayList();
-    list.add(dynamicSql);
-    list.add(params);
-    return list;
-  }
-
-  private JsonArray transformPgResultToJson(com.julienviet.pgclient.PgResult<String> pgResult) {
-    PgIterator pgIterator = pgResult.iterator();
-    JsonArray jsonArray = new JsonArray();
-    List<String> columnName = pgResult.columnsNames();
-    while (pgIterator.hasNext()) {
-      JsonObject row = new JsonObject();
-      Row rowValue = (Row) pgIterator.next();
-      Optional<String> title = Optional.ofNullable(rowValue.getString(1));
-      Optional<String> category = Optional.ofNullable(rowValue.getString(2));
-      Optional<LocalDate> publicationDate = Optional.ofNullable(rowValue.getLocalDate(3));
-      row.put(columnName.get(0), rowValue.getInteger(0));
-      title.ifPresent(v -> row.put(columnName.get(1), v));
-      category.ifPresent(v -> row.put(columnName.get(2), v));
-      publicationDate.ifPresent(v -> row.put(columnName.get(3), v.format(DateTimeFormatter.ISO_LOCAL_DATE)));
-      jsonArray.add(row);
-    }
-    return jsonArray;
   }
 }

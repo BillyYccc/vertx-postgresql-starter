@@ -48,7 +48,12 @@ The Domain Logic is organized with [Transaction Script](https://martinfowler.com
 ##### Database Degisn
 
 ![database](database.png)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FBillyYccc%2Fvertx-postgresql-starter.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FBillyYccc%2Fvertx-postgresql-starter?ref=badge_shield)
 
 ## TODO
 
 - [ ] Find a way to improve Data Access Layer with easier usage
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FBillyYccc%2Fvertx-postgresql-starter.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FBillyYccc%2Fvertx-postgresql-starter?ref=badge_large)

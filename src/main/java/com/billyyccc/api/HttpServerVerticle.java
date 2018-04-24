@@ -24,21 +24,21 @@
 
 package com.billyyccc.api;
 
-import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.api.handler.FailureHandler;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.api.validation.ParameterType;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.http.HttpServer;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
-import static com.billyyccc.database.BookDatabaseService.*;
 import static com.billyyccc.api.EndPoints.*;
+import static com.billyyccc.api.handler.HttpRequestValidator.*;
+import static com.billyyccc.database.BookDatabaseService.*;
 
 /**
  * HttpServer Verticle deployed to provide REST services.
@@ -64,24 +64,18 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     router.route().handler(HTTPRequestValidationHandler.create().addExpectedContentType("application/json"));
 
-    router.get(GET_BOOKS).handler(HTTPRequestValidationHandler.create()
-      .addQueryParam("title", ParameterType.GENERIC_STRING, false)
-      .addQueryParam("category", ParameterType.GENERIC_STRING, false)
-      .addQueryParam("publicationDate", ParameterType.DATE, false))
+    router.get(GET_BOOKS).handler(addBookValidationHandler())
       .handler(BookApis.getBooksHandler(bookDatabaseService));
 
     router.post(ADD_NEW_BOOK).handler(BookApis.addBookHandler(bookDatabaseService));
 
-    router.delete(DELETE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
-      .addPathParam("id", ParameterType.INT))
+    router.delete(DELETE_BOOK_BY_ID).handler(deleteBookByIdValidationHandler())
       .handler(BookApis.deleteBookByIdHandler(bookDatabaseService));
 
-    router.get(GET_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
-      .addPathParam("id", ParameterType.INT))
+    router.get(GET_BOOK_BY_ID).handler(getBookByIdValidationHandler())
       .handler(BookApis.getBookByIdHandler(bookDatabaseService));
 
-    router.put(UPDATE_BOOK_BY_ID).handler(HTTPRequestValidationHandler.create()
-      .addPathParam("id", ParameterType.INT))
+    router.put(UPDATE_BOOK_BY_ID).handler(upsertBookByIdValidationHandler())
       .handler(BookApis.upsertBookByIdHandler(bookDatabaseService));
 
     router.route().failureHandler(new FailureHandler());

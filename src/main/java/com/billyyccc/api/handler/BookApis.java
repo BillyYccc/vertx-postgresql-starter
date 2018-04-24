@@ -29,6 +29,7 @@ import com.billyyccc.entity.Book;
 import com.billyyccc.api.exception.BadRequestException;
 import com.billyyccc.api.exception.ResourceNotFoundException;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
@@ -138,5 +139,15 @@ public class BookApis {
           throwable -> routingContext.fail(new BadRequestException(throwable))
         );
     };
+  }
+
+  private static JsonObject dBJsonToRestJson(JsonObject dbJsonObject) {
+    return new JsonObject(dbJsonObject.toString()
+      .replace("publication_date", "publicationDate"));
+  }
+
+  private static JsonArray dBJsonToRestJson(JsonArray dbJsonArray) {
+    return new JsonArray(dbJsonArray.toString()
+      .replace("publication_date", "publicationDate"));
   }
 }

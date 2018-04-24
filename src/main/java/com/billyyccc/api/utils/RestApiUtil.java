@@ -23,16 +23,6 @@ public class RestApiUtil {
     restResponse(routingContext, statusCode, "");
   }
 
-  public static JsonObject dBJsonToRestJson(JsonObject dbJsonObject) {
-    return new JsonObject(dbJsonObject.encodePrettily()
-      .replace("publication_date", "publicationDate"));
-  }
-
-  public static JsonArray dBJsonToRestJson(JsonArray dbJsonArray) {
-    return new JsonArray(dbJsonArray.encodePrettily()
-      .replace("publication_date", "publicationDate"));
-  }
-
   public static <T> T decodeBodyToObject(RoutingContext routingContext, Class<T> clazz) {
     try {
       return Json.decodeValue(routingContext.getBodyAsString("UTF-8"), clazz);

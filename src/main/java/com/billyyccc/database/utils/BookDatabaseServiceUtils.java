@@ -26,6 +26,7 @@ package com.billyyccc.database.utils;
 
 import com.billyyccc.entity.Book;
 import com.julienviet.reactivex.pgclient.Tuple;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Optional;
 
@@ -37,6 +38,10 @@ public class BookDatabaseServiceUtils {
   private static final String SQL_FIND_BOOKS_CONDITION_BY_TITLE = " AND title = $";
   private static final String SQL_FIND_BOOKS_CONDITION_BY_CATEGORY = " AND category = $";
   private static final String SQL_FIND_BOOKS_CONDITION_BY_PUBLICATION_DATE = " AND publication_date = $";
+
+  public static JsonObject emptyJsonObject() {
+    return new JsonObject();
+  }
 
   // generate query with dynamic where clause in a manual way
   public static DynamicQuery generateDynamicQuery(String rawSql, Book book) {

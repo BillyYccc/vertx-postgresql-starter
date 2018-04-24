@@ -101,7 +101,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
       .subscribe(pgResult -> {
         JsonArray jsonArray = toJsonArray(pgResult);
         if (jsonArray.size() == 0) {
-          resultHandler.handle(Future.succeededFuture(new JsonObject()));
+          resultHandler.handle(Future.succeededFuture(emptyJsonObject()));
         } else {
           JsonObject dbResponse = jsonArray.getJsonObject(0);
           resultHandler.handle(Future.succeededFuture(dbResponse));

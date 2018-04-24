@@ -1,14 +1,14 @@
-package com.billyyccc.http.handler;
+package com.billyyccc.api.handler;
 
-import com.billyyccc.http.exception.BadRequestException;
-import com.billyyccc.http.exception.ResourceNotFoundException;
+import com.billyyccc.api.exception.BadRequestException;
+import com.billyyccc.api.exception.ResourceNotFoundException;
 import io.vertx.core.Handler;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-import static com.billyyccc.http.utils.RestApiUtil.*;
+import static com.billyyccc.api.utils.RestApiUtil.*;
 
 /**
  * This class is handler for handling an exception.

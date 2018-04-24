@@ -1,4 +1,4 @@
-package com.billyyccc.http.exception;
+package com.billyyccc.api.exception;
 
 /**
  * This class is for defining exception of bad request.

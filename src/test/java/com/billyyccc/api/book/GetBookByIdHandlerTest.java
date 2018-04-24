@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Billy Yuan
+ * Copyright (c) 2018 Billy Yuan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,10 @@
  * SOFTWARE.
  */
 
-package com.billyyccc.http.handler;
+package com.billyyccc.api.book;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
+import com.billyyccc.api.handler.BookApis;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -68,7 +69,7 @@ public class GetBookByIdHandlerTest {
 
     Mockito.when(bookDatabaseService.rxGetBookById(1)).thenReturn(Single.just(mockDbResponse));
 
-    router.get("/books/:id").handler(new GetBookByIdHandler(bookDatabaseService));
+    router.get("/books/:id").handler(BookApis.getBookByIdHandler(bookDatabaseService));
 
     vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
   }

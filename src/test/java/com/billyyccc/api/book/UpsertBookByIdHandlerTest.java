@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Billy Yuan
+ * Copyright (c) 2018 Billy Yuan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,11 @@
  * SOFTWARE.
  */
 
-package com.billyyccc.http.handler;
+package com.billyyccc.api.book;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
+import com.billyyccc.api.handler.BookApis;
 import io.reactivex.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -44,13 +45,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 /**
- * This test Class is to perform unit tests for AddBookHandler of books.
+ * This test Class is to perform unit tests for UpsertBookByIdHandler of books.
  *
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
 @RunWith(VertxUnitRunner.class)
-public class AddBookHandlerTest {
+public class UpsertBookByIdHandlerTest {
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
   private Vertx vertx;
@@ -62,12 +63,12 @@ public class AddBookHandlerTest {
 
     BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
-    Book book = new Book(3, "Design Patterns", "design", "1995-01-15");
+    Book book = new Book(0, "Java Concurrency in Practice", "java", "2006-05-19");
 
-    Mockito.when(bookDatabaseService.rxAddNewBook(book)).thenReturn(Completable.complete());
+    Mockito.when(bookDatabaseService.rxUpsertBookById(3, book)).thenReturn(Completable.complete());
 
     router.route().handler(BodyHandler.create());
-    router.post("/books").handler(new AddBookHandler(bookDatabaseService));
+    router.put("/books/:id").handler(BookApis.upsertBookByIdHandler(bookDatabaseService));
 
     vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
 
@@ -84,7 +85,7 @@ public class AddBookHandlerTest {
 
     Async async = testContext.async();
 
-    httpClient.post(1234, "localhost", "/books", res -> {
+    httpClient.put(1234, "localhost", "/books/3", res -> {
 
       testContext.assertEquals(200, res.statusCode());
 
@@ -93,9 +94,9 @@ public class AddBookHandlerTest {
 
         JsonObject expectedResponseBody = new JsonObject()
           .put("id", 3)
-          .put("title", "Design Patterns")
-          .put("category", "design")
-          .put("publicationDate", "1995-01-15");
+          .put("title", "Java Concurrency in Practice")
+          .put("category", "java")
+          .put("publicationDate", "2006-05-19");
 
         testContext.assertEquals(expectedResponseBody, body.toJsonObject());
         httpClient.close();
@@ -103,10 +104,8 @@ public class AddBookHandlerTest {
       });
     }).putHeader("Content-Type", "application/json; charset=utf-8")
       .end(new JsonObject()
-        .put("id", 3)
-        .put("title", "Design Patterns")
-        .put("category", "design")
-        .put("publicationDate", "1995-01-15").toString());
+        .put("title", "Java Concurrency in Practice")
+        .put("category", "java")
+        .put("publicationDate", "2006-05-19").toString());
   }
-
 }

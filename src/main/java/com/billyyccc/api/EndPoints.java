@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.billyyccc.http;
+package com.billyyccc.api;
 
 /**
  * This class is for defining routes for REST APIs.

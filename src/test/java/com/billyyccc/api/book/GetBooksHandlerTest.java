@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Billy Yuan
+ * Copyright (c) 2018 Billy Yuan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,18 +22,20 @@
  * SOFTWARE.
  */
 
-package com.billyyccc.http.handler;
+package com.billyyccc.api.book;
 
 import com.billyyccc.database.reactivex.BookDatabaseService;
-import io.reactivex.Completable;
+import com.billyyccc.entity.Book;
+import com.billyyccc.api.handler.BookApis;
+import io.reactivex.Single;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.core.http.HttpClient;
 import io.vertx.reactivex.ext.web.Router;
-import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,13 +44,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 /**
- * This test Class is to perform unit tests for DeleteBookByIdHandler of books.
+ * This test Class is to perform unit tests for GetBooksHandler of books.
  *
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
 @RunWith(VertxUnitRunner.class)
-public class DeleteBookByIdHandlerTest {
+public class GetBooksHandlerTest {
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
   private Vertx vertx;
@@ -60,15 +62,24 @@ public class DeleteBookByIdHandlerTest {
 
     BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
-    int bookId = 1;
+    JsonArray mockDbResponse = new JsonArray()
+      .add(new JsonObject()
+        .put("id", 1)
+        .put("title", "Effective Java")
+        .put("category", "java")
+        .put("publicationDate", "2009-01-01"))
+      .add(new JsonObject()
+        .put("id", 2)
+        .put("title", "Thinking in Java")
+        .put("category", "java")
+        .put("publicationDate", "2006-02-20"));
 
-    Mockito.when(bookDatabaseService.rxDeleteBookById(bookId)).thenReturn(Completable.complete());
 
-    router.route().handler(BodyHandler.create());
-    router.delete("/books/:id").handler(new DeleteBookByIdHandler(bookDatabaseService));
+    Mockito.when(bookDatabaseService.rxGetBooks(new Book())).thenReturn(Single.just(mockDbResponse));
+
+    router.get("/books").handler(BookApis.getBooksHandler(bookDatabaseService));
 
     vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
-
   }
 
   @After
@@ -78,22 +89,28 @@ public class DeleteBookByIdHandlerTest {
 
   @Test
   public void restApiTest(TestContext testContext) {
-    HttpClient httpClient = vertx.createHttpClient();
-
     Async async = testContext.async();
-
-    httpClient.delete(1234, "localhost", "/books/1", res -> {
-
+    vertx.createHttpClient().getNow(1234, "localhost", "/books", res -> {
       testContext.assertEquals(200, res.statusCode());
-
       res.bodyHandler(body -> {
-        testContext.assertTrue(body.length() == 0);
+        testContext.assertTrue(body.length() > 0);
 
-        httpClient.close();
+        JsonArray expectedResponseBody = new JsonArray()
+          .add(new JsonObject()
+            .put("id", 1)
+            .put("title", "Effective Java")
+            .put("category", "java")
+            .put("publicationDate", "2009-01-01"))
+          .add(new JsonObject()
+            .put("id", 2)
+            .put("title", "Thinking in Java")
+            .put("category", "java")
+            .put("publicationDate", "2006-02-20"));
+
+        testContext.assertEquals(expectedResponseBody, body.toJsonArray());
         async.complete();
       });
-    }).putHeader("Content-Type", "application/json; charset=utf-8")
-      .end();
+    });
   }
 
 }

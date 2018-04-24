@@ -40,6 +40,7 @@ import io.vertx.core.logging.LoggerFactory;
 import java.time.LocalDate;
 
 import static com.billyyccc.database.utils.BookDatabaseServiceUtils.*;
+import static com.billyyccc.database.utils.PgResultTransformer.*;
 
 /**
  * @author Billy Yuan <billy112487983@gmail.com>
@@ -98,7 +99,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
       .map(PgResult::getDelegate)
       .subscribe(pgResult -> {
-        JsonArray jsonArray = transformPgResultToJson(pgResult);
+        JsonArray jsonArray = toJsonArray(pgResult);
         if (jsonArray.size() == 0) {
           resultHandler.handle(Future.succeededFuture(new JsonObject()));
         } else {
@@ -122,7 +123,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
       .map(PgResult::getDelegate)
       .subscribe(
         pgResult -> {
-          JsonArray jsonArray = transformPgResultToJson(pgResult);
+          JsonArray jsonArray = toJsonArray(pgResult);
           resultHandler.handle(Future.succeededFuture(jsonArray));
         },
         throwable -> {

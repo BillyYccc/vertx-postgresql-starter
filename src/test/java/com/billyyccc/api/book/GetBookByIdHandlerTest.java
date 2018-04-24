@@ -24,22 +24,24 @@
 
 package com.billyyccc.api.book;
 
-import com.billyyccc.database.reactivex.BookDatabaseService;
+import com.billyyccc.api.EndPoints;
+import com.billyyccc.api.RestApiTestBase;
 import com.billyyccc.api.handler.BookApis;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.Router;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * This test Class is to perform unit tests for GetBookByIdHandler of books.
@@ -48,17 +50,13 @@ import org.mockito.Mockito;
  */
 
 @RunWith(VertxUnitRunner.class)
-public class GetBookByIdHandlerTest {
-  @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
-  private Vertx vertx;
-
+public class GetBookByIdHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
     vertx = new Vertx(rule.vertx());
-    Router router = Router.router(vertx);
+    router = Router.router(vertx);
 
-    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     JsonObject mockDbResponse = new JsonObject()
       .put("id", 1)
@@ -67,11 +65,9 @@ public class GetBookByIdHandlerTest {
       .put("publicationDate", "2009-01-01");
 
 
-    Mockito.when(bookDatabaseService.rxGetBookById(1)).thenReturn(Single.just(mockDbResponse));
+    Mockito.when(mockBookDatabaseService.rxGetBookById(1)).thenReturn(Single.just(mockDbResponse));
 
-    router.get("/books/:id").handler(BookApis.getBookByIdHandler(bookDatabaseService));
-
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
+    mockServer(GET, EndPoints.GET_BOOK_BY_ID, BookApis.getBookByIdHandler(mockBookDatabaseService), testContext);
   }
 
   @After

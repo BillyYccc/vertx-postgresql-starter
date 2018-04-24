@@ -24,23 +24,24 @@
 
 package com.billyyccc.api.book;
 
-import com.billyyccc.database.reactivex.BookDatabaseService;
+import com.billyyccc.api.EndPoints;
+import com.billyyccc.api.RestApiTestBase;
 import com.billyyccc.api.handler.BookApis;
+import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.reactivex.Completable;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
 import io.vertx.reactivex.ext.web.Router;
-import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * This test Class is to perform unit tests for DeleteBookByIdHandler of books.
@@ -49,27 +50,19 @@ import org.mockito.Mockito;
  */
 
 @RunWith(VertxUnitRunner.class)
-public class DeleteBookByIdHandlerTest {
-  @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
-  private Vertx vertx;
-
+public class DeleteBookByIdHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
     vertx = new Vertx(rule.vertx());
-    Router router = Router.router(vertx);
+    router = Router.router(vertx);
 
-    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     int bookId = 1;
 
-    Mockito.when(bookDatabaseService.rxDeleteBookById(bookId)).thenReturn(Completable.complete());
+    Mockito.when(mockBookDatabaseService.rxDeleteBookById(bookId)).thenReturn(Completable.complete());
 
-    router.route().handler(BodyHandler.create());
-    router.delete("/books/:id").handler(BookApis.deleteBookByIdHandler(bookDatabaseService));
-
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
-
+    mockServer(DELETE, EndPoints.DELETE_BOOK_BY_ID, BookApis.deleteBookByIdHandler(mockBookDatabaseService), testContext);
   }
 
   @After

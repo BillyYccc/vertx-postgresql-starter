@@ -24,25 +24,26 @@
 
 package com.billyyccc.api.book;
 
+import com.billyyccc.api.EndPoints;
+import com.billyyccc.api.RestApiTestBase;
+import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
-import com.billyyccc.api.handler.BookApis;
 import io.reactivex.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
 import io.vertx.reactivex.ext.web.Router;
-import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * This test Class is to perform unit tests for UpsertBookByIdHandler of books.
@@ -51,27 +52,19 @@ import org.mockito.Mockito;
  */
 
 @RunWith(VertxUnitRunner.class)
-public class UpsertBookByIdHandlerTest {
-  @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
-  private Vertx vertx;
-
+public class UpsertBookByIdHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
     vertx = new Vertx(rule.vertx());
-    Router router = Router.router(vertx);
+    router = Router.router(vertx);
 
-    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     Book book = new Book(0, "Java Concurrency in Practice", "java", "2006-05-19");
 
-    Mockito.when(bookDatabaseService.rxUpsertBookById(3, book)).thenReturn(Completable.complete());
+    Mockito.when(mockBookDatabaseService.rxUpsertBookById(3, book)).thenReturn(Completable.complete());
 
-    router.route().handler(BodyHandler.create());
-    router.put("/books/:id").handler(BookApis.upsertBookByIdHandler(bookDatabaseService));
-
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
-
+    mockServer(PUT, EndPoints.UPDATE_BOOK_BY_ID, BookApis.upsertBookByIdHandler(mockBookDatabaseService), testContext);
   }
 
   @After

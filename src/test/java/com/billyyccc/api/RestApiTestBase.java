@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Billy Yuan
+ * Copyright (c) 2018 Billy Yuan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +24,34 @@
 
 package com.billyyccc.api;
 
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.RunTestOnContext;
+import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.handler.BodyHandler;
+import org.junit.Rule;
+
 /**
- * This class is for defining routes for REST APIs.
- *
- * @author Billy Yuan <billy112487983@gmail.com>
+ * @author Billy Yuan
  */
 
-public final class EndPoints {
-  public static final String GET_BOOKS = "/books";
-  public static final String ADD_NEW_BOOK = "/books";
-  public static final String GET_BOOK_BY_ID = "/books/:id";
-  public static final String DELETE_BOOK_BY_ID = "/books/:id";
-  public static final String UPDATE_BOOK_BY_ID = "/books/:id";
+public abstract class RestApiTestBase {
+  @Rule
+  public RunTestOnContext rule = new RunTestOnContext();
 
-  private EndPoints() {
-    // No instance of this class allowed
+  protected Vertx vertx;
+  protected Router router;
+
+  protected void mockServer(HttpMethod httpMethod, String routingPath, Handler<RoutingContext> handler, TestContext testContext) {
+    if (httpMethod.equals(HttpMethod.POST) || httpMethod.equals(HttpMethod.PUT)) {
+      router.route().handler(BodyHandler.create());
+    }
+
+    router.route(httpMethod, routingPath).handler(handler);
+
+    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
   }
 }

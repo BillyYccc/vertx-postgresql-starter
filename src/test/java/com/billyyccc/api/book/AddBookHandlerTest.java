@@ -24,25 +24,26 @@
 
 package com.billyyccc.api.book;
 
+import com.billyyccc.api.EndPoints;
+import com.billyyccc.api.RestApiTestBase;
+import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
-import com.billyyccc.api.handler.BookApis;
 import io.reactivex.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
 import io.vertx.reactivex.ext.web.Router;
-import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * This test Class is to perform unit tests for AddBookHandler of books.
@@ -51,27 +52,19 @@ import org.mockito.Mockito;
  */
 
 @RunWith(VertxUnitRunner.class)
-public class AddBookHandlerTest {
-  @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
-  private Vertx vertx;
-
+public class AddBookHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
     vertx = new Vertx(rule.vertx());
-    Router router = Router.router(vertx);
+    router = Router.router(vertx);
 
-    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     Book book = new Book(3, "Design Patterns", "design", "1995-01-15");
 
-    Mockito.when(bookDatabaseService.rxAddNewBook(book)).thenReturn(Completable.complete());
+    Mockito.when(mockBookDatabaseService.rxAddNewBook(book)).thenReturn(Completable.complete());
 
-    router.route().handler(BodyHandler.create());
-    router.post("/books").handler(BookApis.addBookHandler(bookDatabaseService));
-
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
-
+    mockServer(POST, EndPoints.GET_BOOKS, BookApis.addBookHandler(mockBookDatabaseService), testContext);
   }
 
   @After

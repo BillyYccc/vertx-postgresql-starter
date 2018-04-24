@@ -24,6 +24,8 @@
 
 package com.billyyccc;
 
+import com.billyyccc.database.BookDatabaseVerticle;
+import com.billyyccc.http.HttpServerVerticle;
 import io.reactivex.Single;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -36,8 +38,8 @@ import io.vertx.reactivex.core.AbstractVerticle;
  */
 
 public class MainVerticle extends AbstractVerticle {
-  private static final String HTTP_SERVER_VERTICLE_IDENTIFIER = "com.billyyccc.http.HttpServerVerticle";
-  private static final String PG_DATABASE_VERTICLE_IDENTIFIER = "com.billyyccc.database.BookDatabaseVerticle";
+  private static final String HTTP_SERVER_VERTICLE_IDENTIFIER = HttpServerVerticle.class.getName();
+  private static final String PG_DATABASE_VERTICLE_IDENTIFIER = BookDatabaseVerticle.class.getName();
 
 
   @Override

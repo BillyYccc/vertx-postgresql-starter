@@ -63,7 +63,7 @@ public class BookApis {
 
       bookDatabaseService.rxDeleteBookById(bookId)
         .subscribe(
-          () -> restResponse(routingContext, 200),
+          () -> restResponse(routingContext, 202),
           throwable -> routingContext.fail(new BadRequestException(throwable)));
     };
   }

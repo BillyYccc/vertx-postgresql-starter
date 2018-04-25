@@ -37,7 +37,6 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.Router;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,11 +75,6 @@ public class GetBooksHandlerTest extends RestApiTestBase {
     Mockito.when(mockBookDatabaseService.rxGetBooks(new Book())).thenReturn(Single.just(mockDbResponse));
 
     mockServer(GET, EndPoints.GET_BOOKS, BookApis.getBooksHandler(mockBookDatabaseService), testContext);
-  }
-
-  @After
-  public void tearDown(TestContext testContext) {
-    vertx.close(testContext.asyncAssertSuccess());
   }
 
   @Test

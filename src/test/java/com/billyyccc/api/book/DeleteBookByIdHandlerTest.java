@@ -65,11 +65,6 @@ public class DeleteBookByIdHandlerTest extends RestApiTestBase {
     mockServer(DELETE, EndPoints.DELETE_BOOK_BY_ID, BookApis.deleteBookByIdHandler(mockBookDatabaseService), testContext);
   }
 
-  @After
-  public void tearDown(TestContext testContext) {
-    vertx.close(testContext.asyncAssertSuccess());
-  }
-
   @Test
   public void restApiTest(TestContext testContext) {
     HttpClient httpClient = vertx.createHttpClient();

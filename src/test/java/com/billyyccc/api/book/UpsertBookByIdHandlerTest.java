@@ -37,7 +37,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
 import io.vertx.reactivex.ext.web.Router;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,11 +64,6 @@ public class UpsertBookByIdHandlerTest extends RestApiTestBase {
     Mockito.when(mockBookDatabaseService.rxUpsertBookById(3, book)).thenReturn(Completable.complete());
 
     mockServer(PUT, EndPoints.UPDATE_BOOK_BY_ID, BookApis.upsertBookByIdHandler(mockBookDatabaseService), testContext);
-  }
-
-  @After
-  public void tearDown(TestContext testContext) {
-    vertx.close(testContext.asyncAssertSuccess());
   }
 
   @Test

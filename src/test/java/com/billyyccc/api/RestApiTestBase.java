@@ -32,6 +32,7 @@ import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
+import org.junit.After;
 import org.junit.Rule;
 
 /**
@@ -44,6 +45,11 @@ public abstract class RestApiTestBase {
 
   protected Vertx vertx;
   protected Router router;
+
+  @After
+  public void tearDown(TestContext testContext) {
+    vertx.close(testContext.asyncAssertSuccess());
+  }
 
   protected void mockServer(HttpMethod httpMethod, String routingPath, Handler<RoutingContext> handler, TestContext testContext) {
     if (httpMethod.equals(HttpMethod.POST) || httpMethod.equals(HttpMethod.PUT)) {

@@ -24,10 +24,10 @@
 
 package com.billyyccc.api.handler;
 
-import com.billyyccc.database.reactivex.BookDatabaseService;
-import com.billyyccc.entity.Book;
 import com.billyyccc.api.exception.BadRequestException;
 import com.billyyccc.api.exception.ResourceNotFoundException;
+import com.billyyccc.database.reactivex.BookDatabaseService;
+import com.billyyccc.entity.Book;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -81,7 +81,7 @@ public class BookApis {
             if (dbResponse.isEmpty()) {
               routingContext.fail(new ResourceNotFoundException("The book with id " + bookId + " can not be found"));
             } else {
-              restResponse(routingContext, 200, dBJsonToRestJson(dbResponse).encodePrettily());
+              restResponse(routingContext, 200, dbResponse.toString());
             }
           },
           throwable -> routingContext.fail(new BadRequestException(throwable))
@@ -108,10 +108,10 @@ public class BookApis {
                 routingContext.fail(new ResourceNotFoundException("The books have not been found"));
                 break;
               case 1:
-                restResponse(routingContext, 200, dBJsonToRestJson(dbResponse.getJsonObject(0)).encodePrettily());
+                restResponse(routingContext, 200, dbResponse.getJsonObject(0).toString());
                 break;
               default:
-                restResponse(routingContext, 200, dBJsonToRestJson(dbResponse).encodePrettily());
+                restResponse(routingContext, 200, dbResponse.toString());
                 break;
             }
           },
@@ -139,15 +139,5 @@ public class BookApis {
           throwable -> routingContext.fail(new BadRequestException(throwable))
         );
     };
-  }
-
-  private static JsonObject dBJsonToRestJson(JsonObject dbJsonObject) {
-    return new JsonObject(dbJsonObject.toString()
-      .replace("publication_date", "publicationDate"));
-  }
-
-  private static JsonArray dBJsonToRestJson(JsonArray dbJsonArray) {
-    return new JsonArray(dbJsonArray.toString()
-      .replace("publication_date", "publicationDate"));
   }
 }

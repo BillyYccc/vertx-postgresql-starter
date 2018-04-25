@@ -54,7 +54,8 @@ public class PgResultTransformer {
           continue;
         }
         value = processType(value);
-        currentRow.put(columnName, value);
+        String key = coordinateKeys(columnName);
+        currentRow.put(key, value);
       }
       jsonArray.add(currentRow);
     });
@@ -87,6 +88,16 @@ public class PgResultTransformer {
 
   private static String processUUID(UUID uuid) {
     return uuid.toString();
+  }
+
+  /**
+   * Make the Json converted from row-column data unified with the Json defined in REST APIs.
+   */
+  private static String coordinateKeys(String columnName) {
+    if (columnName.equals("publication_date")) {
+      return "publicationDate";
+    }
+    return columnName;
   }
 }
 

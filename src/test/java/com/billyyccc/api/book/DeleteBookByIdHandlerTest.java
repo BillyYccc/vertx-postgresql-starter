@@ -29,10 +29,11 @@ import com.billyyccc.api.RestApiTestBase;
 import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.reactivex.Completable;
-import io.vertx.ext.unit.Async;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.http.HttpClient;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.ext.web.codec.BodyCodec;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,26 +58,20 @@ public class DeleteBookByIdHandlerTest extends RestApiTestBase {
     Mockito.when(mockBookDatabaseService.rxDeleteBookById(bookId)).thenReturn(Completable.complete());
 
     mockServer(1234, DELETE, EndPoints.DELETE_BOOK_BY_ID, BookApis.deleteBookByIdHandler(mockBookDatabaseService), testContext);
+
+    webClient = WebClient.create(vertx);
   }
 
   @Test
   public void restApiTest(TestContext testContext) {
-    HttpClient httpClient = vertx.createHttpClient();
+    expectedResponseStatusCode = 202;
 
-    Async async = testContext.async();
-
-    httpClient.delete(1234, "localhost", "/books/1", res -> {
-
-      testContext.assertEquals(200, res.statusCode());
-
-      res.bodyHandler(body -> {
-        testContext.assertTrue(body.length() == 0);
-
-        httpClient.close();
-        async.complete();
-      });
-    }).putHeader("Content-Type", "application/json; charset=utf-8")
-      .end();
+    webClient.request(HttpMethod.DELETE, 1234, "localhost", "/books/1")
+      .putHeader("Content-Type", "application/json; charset=utf-8")
+      .as(BodyCodec.jsonObject())
+      .send(testContext.asyncAssertSuccess(resp -> {
+        testContext.assertEquals(expectedResponseStatusCode, resp.statusCode());
+      }));
   }
 
 }

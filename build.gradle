@@ -45,6 +45,7 @@ dependencies {
   compile "io.vertx:vertx-codegen:$vertxVersion"
   compile "io.vertx:vertx-rx-java2:$vertxVersion"
   compile "io.vertx:vertx-web-api-contract:$vertxVersion"
+  compile "io.vertx:vertx-web-client:$vertxVersion"
 
   // Logging Dependencies
   compile "org.slf4j:slf4j-api:$slf4jVersion"

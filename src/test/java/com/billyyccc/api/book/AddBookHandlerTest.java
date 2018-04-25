@@ -30,9 +30,12 @@ import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.reactivex.Completable;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.ext.web.codec.BodyCodec;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,27 +61,32 @@ public class AddBookHandlerTest extends RestApiTestBase {
 
     mockServer(1234, POST, EndPoints.ADD_NEW_BOOK, BookApis.addBookHandler(mockBookDatabaseService), testContext);
 
-    httpClient = vertx.createHttpClient();
+    webClient = WebClient.create(vertx);
   }
 
   @Test
   public void restApiTest(TestContext testContext) {
     expectedResponseStatusCode = 200;
 
-    expectedResponseBody = new JsonObject()
+    JsonObject expectedResponseBody = new JsonObject()
       .put("id", 3)
       .put("title", "Design Patterns")
       .put("category", "design")
       .put("publicationDate", "1995-01-15");
 
-    String requestBody = new JsonObject()
+    JsonObject requestBody = new JsonObject()
       .put("id", 3)
       .put("title", "Design Patterns")
       .put("category", "design")
-      .put("publicationDate", "1995-01-15")
-      .toString();
+      .put("publicationDate", "1995-01-15");
 
-    postRequestAndCheck(1234, EndPoints.ADD_NEW_BOOK, requestBody, testContext);
+    webClient.request(HttpMethod.POST, 1234, "localhost", "/books")
+      .putHeader("Content-Type", "application/json; charset=utf-8")
+      .as(BodyCodec.jsonObject())
+      .sendJsonObject(requestBody, testContext.asyncAssertSuccess(resp -> {
+        testContext.assertEquals(expectedResponseStatusCode, resp.statusCode());
+        testContext.assertEquals(expectedResponseBody, resp.body());
+      }));
   }
 
 }

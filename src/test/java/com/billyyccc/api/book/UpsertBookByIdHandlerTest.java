@@ -30,11 +30,12 @@ import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.reactivex.Completable;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.http.HttpClient;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.ext.web.codec.BodyCodec;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,35 +60,31 @@ public class UpsertBookByIdHandlerTest extends RestApiTestBase {
     Mockito.when(mockBookDatabaseService.rxUpsertBookById(3, book)).thenReturn(Completable.complete());
 
     mockServer(1234, PUT, EndPoints.UPDATE_BOOK_BY_ID, BookApis.upsertBookByIdHandler(mockBookDatabaseService), testContext);
+
+    webClient = WebClient.create(vertx);
   }
 
   @Test
   public void restApiTest(TestContext testContext) {
-    HttpClient httpClient = vertx.createHttpClient();
+    expectedResponseStatusCode = 200;
 
-    Async async = testContext.async();
+    JsonObject expectedResponseBody = new JsonObject()
+      .put("id", 3)
+      .put("title", "Java Concurrency in Practice")
+      .put("category", "java")
+      .put("publicationDate", "2006-05-19");
 
-    httpClient.put(1234, "localhost", "/books/3", res -> {
+    JsonObject requestBody = new JsonObject()
+      .put("title", "Java Concurrency in Practice")
+      .put("category", "java")
+      .put("publicationDate", "2006-05-19");
 
-      testContext.assertEquals(200, res.statusCode());
-
-      res.bodyHandler(body -> {
-        testContext.assertTrue(body.length() > 0);
-
-        JsonObject expectedResponseBody = new JsonObject()
-          .put("id", 3)
-          .put("title", "Java Concurrency in Practice")
-          .put("category", "java")
-          .put("publicationDate", "2006-05-19");
-
-        testContext.assertEquals(expectedResponseBody, body.toJsonObject());
-        httpClient.close();
-        async.complete();
-      });
-    }).putHeader("Content-Type", "application/json; charset=utf-8")
-      .end(new JsonObject()
-        .put("title", "Java Concurrency in Practice")
-        .put("category", "java")
-        .put("publicationDate", "2006-05-19").toString());
+    webClient.request(HttpMethod.PUT, 1234, "localhost", "/books/3")
+      .putHeader("Content-Type", "application/json; charset=utf-8")
+      .as(BodyCodec.jsonObject())
+      .sendJsonObject(requestBody, testContext.asyncAssertSuccess(resp -> {
+        testContext.assertEquals(expectedResponseStatusCode, resp.statusCode());
+        testContext.assertEquals(expectedResponseBody, resp.body());
+      }));
   }
 }

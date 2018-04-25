@@ -29,10 +29,12 @@ import com.billyyccc.api.RestApiTestBase;
 import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.reactivex.Single;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.ext.web.codec.BodyCodec;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,26 +64,27 @@ public class GetBookByIdHandlerTest extends RestApiTestBase {
     Mockito.when(mockBookDatabaseService.rxGetBookById(1)).thenReturn(Single.just(mockDbResponse));
 
     mockServer(1234, GET, EndPoints.GET_BOOK_BY_ID, BookApis.getBookByIdHandler(mockBookDatabaseService), testContext);
+
+    webClient = WebClient.create(vertx);
   }
 
   @Test
   public void restApiTest(TestContext testContext) {
-    Async async = testContext.async();
-    vertx.createHttpClient().getNow(1234, "localhost", "/books/1", res -> {
-      testContext.assertEquals(200, res.statusCode());
-      res.bodyHandler(body -> {
-        testContext.assertTrue(body.length() > 0);
+    expectedResponseStatusCode = 200;
 
-        JsonObject expectedResponseBody = new JsonObject()
-          .put("id", 1)
-          .put("title", "Effective Java")
-          .put("category", "java")
-          .put("publicationDate", "2009-01-01");
+    JsonObject expectedResponseBody = new JsonObject()
+      .put("id", 1)
+      .put("title", "Effective Java")
+      .put("category", "java")
+      .put("publicationDate", "2009-01-01");
 
-        testContext.assertEquals(expectedResponseBody, body.toJsonObject());
-        async.complete();
-      });
-    });
+    webClient.request(HttpMethod.GET, 1234, "localhost", "/books/1")
+      .putHeader("Content-Type", "application/json; charset=utf-8")
+      .as(BodyCodec.jsonObject())
+      .send(testContext.asyncAssertSuccess(resp -> {
+        testContext.assertEquals(expectedResponseStatusCode, resp.statusCode());
+        testContext.assertEquals(expectedResponseBody, resp.body());
+      }));
   }
 
 }

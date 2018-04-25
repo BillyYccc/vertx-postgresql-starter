@@ -26,14 +26,12 @@ package com.billyyccc.api;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.core.http.HttpClient;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.client.WebClient;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import org.junit.After;
 import org.junit.Rule;
@@ -48,10 +46,10 @@ public abstract class RestApiTestBase {
 
   protected Vertx vertx;
   protected Router router;
-  protected HttpClient httpClient;
+
+  protected WebClient webClient;
 
   protected int expectedResponseStatusCode;
-  protected JsonObject expectedResponseBody;
 
   @After
   public void tearDown(TestContext testContext) {
@@ -69,23 +67,5 @@ public abstract class RestApiTestBase {
     router.route(httpMethod, routingPath).handler(handler);
 
     vertx.createHttpServer().requestHandler(router::accept).listen(port, testContext.asyncAssertSuccess());
-  }
-
-  protected void postRequestAndCheck(int port, String requestUri, String requestBody, TestContext testContext) {
-    Async async = testContext.async();
-
-    httpClient.post(port, "localhost", requestUri, res -> {
-
-      testContext.assertEquals(expectedResponseStatusCode, res.statusCode());
-
-      res.bodyHandler(body -> {
-        testContext.assertTrue(body.length() > 0);
-
-        testContext.assertEquals(expectedResponseBody, body.toJsonObject());
-        httpClient.close();
-        async.complete();
-      });
-    }).putHeader("Content-Type", "application/json; charset=utf-8")
-      .end(requestBody);
   }
 }

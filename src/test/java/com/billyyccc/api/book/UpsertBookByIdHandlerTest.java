@@ -34,9 +34,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
-import io.vertx.reactivex.ext.web.Router;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,16 +52,13 @@ import static io.vertx.core.http.HttpMethod.*;
 public class UpsertBookByIdHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
-    vertx = new Vertx(rule.vertx());
-    router = Router.router(vertx);
-
     BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     Book book = new Book(0, "Java Concurrency in Practice", "java", "2006-05-19");
 
     Mockito.when(mockBookDatabaseService.rxUpsertBookById(3, book)).thenReturn(Completable.complete());
 
-    mockServer(PUT, EndPoints.UPDATE_BOOK_BY_ID, BookApis.upsertBookByIdHandler(mockBookDatabaseService), testContext);
+    mockServer(1234, PUT, EndPoints.UPDATE_BOOK_BY_ID, BookApis.upsertBookByIdHandler(mockBookDatabaseService), testContext);
   }
 
   @Test

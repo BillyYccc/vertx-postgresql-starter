@@ -32,10 +32,7 @@ import io.reactivex.Completable;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
-import io.vertx.reactivex.ext.web.Router;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,16 +50,13 @@ import static io.vertx.core.http.HttpMethod.*;
 public class DeleteBookByIdHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
-    vertx = new Vertx(rule.vertx());
-    router = Router.router(vertx);
-
     BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     int bookId = 1;
 
     Mockito.when(mockBookDatabaseService.rxDeleteBookById(bookId)).thenReturn(Completable.complete());
 
-    mockServer(DELETE, EndPoints.DELETE_BOOK_BY_ID, BookApis.deleteBookByIdHandler(mockBookDatabaseService), testContext);
+    mockServer(1234, DELETE, EndPoints.DELETE_BOOK_BY_ID, BookApis.deleteBookByIdHandler(mockBookDatabaseService), testContext);
   }
 
   @Test

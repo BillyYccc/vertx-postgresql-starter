@@ -51,13 +51,16 @@ public abstract class RestApiTestBase {
     vertx.close(testContext.asyncAssertSuccess());
   }
 
-  protected void mockServer(HttpMethod httpMethod, String routingPath, Handler<RoutingContext> handler, TestContext testContext) {
+  protected void mockServer(int port, HttpMethod httpMethod, String routingPath, Handler<RoutingContext> handler, TestContext testContext) {
+    vertx = new Vertx(rule.vertx());
+    router = Router.router(vertx);
+
     if (httpMethod.equals(HttpMethod.POST) || httpMethod.equals(HttpMethod.PUT)) {
       router.route().handler(BodyHandler.create());
     }
 
     router.route(httpMethod, routingPath).handler(handler);
 
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
+    vertx.createHttpServer().requestHandler(router::accept).listen(port, testContext.asyncAssertSuccess());
   }
 }

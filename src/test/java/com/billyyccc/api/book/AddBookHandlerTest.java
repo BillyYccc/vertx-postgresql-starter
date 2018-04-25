@@ -34,9 +34,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
-import io.vertx.reactivex.ext.web.Router;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,16 +52,13 @@ import static io.vertx.core.http.HttpMethod.*;
 public class AddBookHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
-    vertx = new Vertx(rule.vertx());
-    router = Router.router(vertx);
-
     BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     Book book = new Book(3, "Design Patterns", "design", "1995-01-15");
 
     Mockito.when(mockBookDatabaseService.rxAddNewBook(book)).thenReturn(Completable.complete());
 
-    mockServer(POST, EndPoints.GET_BOOKS, BookApis.addBookHandler(mockBookDatabaseService), testContext);
+    mockServer(1234, POST, EndPoints.GET_BOOKS, BookApis.addBookHandler(mockBookDatabaseService), testContext);
   }
 
   @Test

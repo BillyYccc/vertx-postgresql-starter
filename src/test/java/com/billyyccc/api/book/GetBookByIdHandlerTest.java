@@ -33,8 +33,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.ext.web.Router;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,9 +50,6 @@ import static io.vertx.core.http.HttpMethod.*;
 public class GetBookByIdHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
-    vertx = new Vertx(rule.vertx());
-    router = Router.router(vertx);
-
     BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     JsonObject mockDbResponse = new JsonObject()
@@ -66,7 +61,7 @@ public class GetBookByIdHandlerTest extends RestApiTestBase {
 
     Mockito.when(mockBookDatabaseService.rxGetBookById(1)).thenReturn(Single.just(mockDbResponse));
 
-    mockServer(GET, EndPoints.GET_BOOK_BY_ID, BookApis.getBookByIdHandler(mockBookDatabaseService), testContext);
+    mockServer(1234, GET, EndPoints.GET_BOOK_BY_ID, BookApis.getBookByIdHandler(mockBookDatabaseService), testContext);
   }
 
   @Test

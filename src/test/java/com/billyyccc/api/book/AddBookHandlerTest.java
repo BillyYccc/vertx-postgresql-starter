@@ -31,10 +31,8 @@ import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.reactivex.Completable;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.http.HttpClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,38 +56,29 @@ public class AddBookHandlerTest extends RestApiTestBase {
 
     Mockito.when(mockBookDatabaseService.rxAddNewBook(book)).thenReturn(Completable.complete());
 
-    mockServer(1234, POST, EndPoints.GET_BOOKS, BookApis.addBookHandler(mockBookDatabaseService), testContext);
+    mockServer(1234, POST, EndPoints.ADD_NEW_BOOK, BookApis.addBookHandler(mockBookDatabaseService), testContext);
+
+    httpClient = vertx.createHttpClient();
   }
 
   @Test
   public void restApiTest(TestContext testContext) {
-    HttpClient httpClient = vertx.createHttpClient();
+    expectedResponseStatusCode = 200;
 
-    Async async = testContext.async();
+    expectedResponseBody = new JsonObject()
+      .put("id", 3)
+      .put("title", "Design Patterns")
+      .put("category", "design")
+      .put("publicationDate", "1995-01-15");
 
-    httpClient.post(1234, "localhost", "/books", res -> {
+    String requestBody = new JsonObject()
+      .put("id", 3)
+      .put("title", "Design Patterns")
+      .put("category", "design")
+      .put("publicationDate", "1995-01-15")
+      .toString();
 
-      testContext.assertEquals(200, res.statusCode());
-
-      res.bodyHandler(body -> {
-        testContext.assertTrue(body.length() > 0);
-
-        JsonObject expectedResponseBody = new JsonObject()
-          .put("id", 3)
-          .put("title", "Design Patterns")
-          .put("category", "design")
-          .put("publicationDate", "1995-01-15");
-
-        testContext.assertEquals(expectedResponseBody, body.toJsonObject());
-        httpClient.close();
-        async.complete();
-      });
-    }).putHeader("Content-Type", "application/json; charset=utf-8")
-      .end(new JsonObject()
-        .put("id", 3)
-        .put("title", "Design Patterns")
-        .put("category", "design")
-        .put("publicationDate", "1995-01-15").toString());
+    postRequestAndCheck(1234, EndPoints.ADD_NEW_BOOK, requestBody, testContext);
   }
 
 }

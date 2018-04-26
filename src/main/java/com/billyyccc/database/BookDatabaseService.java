@@ -26,7 +26,7 @@ package com.billyyccc.database;
 
 import com.billyyccc.database.impl.BookDatabaseServiceImpl;
 import com.billyyccc.entity.Book;
-import com.julienviet.pgclient.PgPool;
+import io.reactiverse.pgclient.PgPool;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

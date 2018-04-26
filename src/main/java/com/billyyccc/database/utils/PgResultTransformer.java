@@ -24,8 +24,8 @@
 
 package com.billyyccc.database.utils;
 
-import com.julienviet.pgclient.PgResult;
-import com.julienviet.pgclient.Row;
+import io.reactiverse.pgclient.PgResult;
+import io.reactiverse.pgclient.Row;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 

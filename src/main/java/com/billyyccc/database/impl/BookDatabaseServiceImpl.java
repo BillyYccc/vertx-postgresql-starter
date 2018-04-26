@@ -26,9 +26,9 @@ package com.billyyccc.database.impl;
 
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
-import com.julienviet.reactivex.pgclient.PgPool;
-import com.julienviet.reactivex.pgclient.PgResult;
-import com.julienviet.reactivex.pgclient.Tuple;
+import io.reactiverse.reactivex.pgclient.PgPool;
+import io.reactiverse.reactivex.pgclient.PgResult;
+import io.reactiverse.reactivex.pgclient.Tuple;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -58,7 +58,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   private final PgPool pgConnectionPool;
 
-  public BookDatabaseServiceImpl(com.julienviet.pgclient.PgPool pgPool, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
+  public BookDatabaseServiceImpl(io.reactiverse.pgclient.PgPool pgPool, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
     pgConnectionPool = new PgPool(pgPool);
     pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection

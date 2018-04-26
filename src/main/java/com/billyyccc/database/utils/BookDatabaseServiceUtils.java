@@ -25,7 +25,7 @@
 package com.billyyccc.database.utils;
 
 import com.billyyccc.entity.Book;
-import com.julienviet.reactivex.pgclient.Tuple;
+import io.reactiverse.reactivex.pgclient.Tuple;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Optional;

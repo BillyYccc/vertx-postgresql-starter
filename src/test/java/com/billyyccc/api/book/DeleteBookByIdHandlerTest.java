@@ -29,7 +29,6 @@ import com.billyyccc.api.RestApiTestBase;
 import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.reactivex.Completable;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.ext.web.client.WebClient;
@@ -66,7 +65,7 @@ public class DeleteBookByIdHandlerTest extends RestApiTestBase {
   public void restApiTest(TestContext testContext) {
     expectedResponseStatusCode = 202;
 
-    webClient.request(HttpMethod.DELETE, 1234, "localhost", "/books/1")
+    webClient.request(DELETE, 1234, "localhost", "/books/1")
       .putHeader("Content-Type", "application/json; charset=utf-8")
       .as(BodyCodec.jsonObject())
       .send(testContext.asyncAssertSuccess(resp -> {

@@ -94,7 +94,7 @@ public class PgResultTransformer {
    * Make the Json converted from row-column data unified with the Json defined in REST APIs.
    */
   private static String coordinateKeys(String columnName) {
-    if (columnName.equals("publication_date")) {
+    if ("publication_date".equals(columnName)) {
       return "publicationDate";
     }
     return columnName;

@@ -30,7 +30,6 @@ import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.reactivex.Completable;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -80,7 +79,7 @@ public class AddBookHandlerTest extends RestApiTestBase {
       .put("category", "design")
       .put("publicationDate", "1995-01-15");
 
-    webClient.request(HttpMethod.POST, 1234, "localhost", "/books")
+    webClient.request(POST, 1234, "localhost", "/books")
       .putHeader("Content-Type", "application/json; charset=utf-8")
       .as(BodyCodec.jsonObject())
       .sendJsonObject(requestBody, testContext.asyncAssertSuccess(resp -> {

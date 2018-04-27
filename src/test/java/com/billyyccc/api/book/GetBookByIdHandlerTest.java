@@ -29,7 +29,6 @@ import com.billyyccc.api.RestApiTestBase;
 import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import io.reactivex.Single;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -78,7 +77,7 @@ public class GetBookByIdHandlerTest extends RestApiTestBase {
       .put("category", "java")
       .put("publicationDate", "2009-01-01");
 
-    webClient.request(HttpMethod.GET, 1234, "localhost", "/books/1")
+    webClient.request(GET, 1234, "localhost", "/books/1")
       .putHeader("Content-Type", "application/json; charset=utf-8")
       .as(BodyCodec.jsonObject())
       .send(testContext.asyncAssertSuccess(resp -> {

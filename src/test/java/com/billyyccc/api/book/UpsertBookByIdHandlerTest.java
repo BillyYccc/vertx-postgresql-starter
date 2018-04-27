@@ -30,7 +30,6 @@ import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.reactivex.Completable;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -79,7 +78,7 @@ public class UpsertBookByIdHandlerTest extends RestApiTestBase {
       .put("category", "java")
       .put("publicationDate", "2006-05-19");
 
-    webClient.request(HttpMethod.PUT, 1234, "localhost", "/books/3")
+    webClient.request(PUT, 1234, "localhost", "/books/3")
       .putHeader("Content-Type", "application/json; charset=utf-8")
       .as(BodyCodec.jsonObject())
       .sendJsonObject(requestBody, testContext.asyncAssertSuccess(resp -> {

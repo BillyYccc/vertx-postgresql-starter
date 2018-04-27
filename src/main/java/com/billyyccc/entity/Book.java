@@ -56,6 +56,10 @@ public class Book {
     this.publicationDate = other.publicationDate;
   }
 
+  public Book(String json) {
+    this(new JsonObject(json));
+  }
+
   public Book(JsonObject jsonObject) {
     BookConverter.fromJson(jsonObject, this);
   }

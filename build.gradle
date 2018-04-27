@@ -15,11 +15,12 @@ mainClassName = 'io.vertx.core.Launcher'
 ext {
   //dependencies
   junitVersion = '4.12'
-  vertxVersion = '3.5.0'
+  vertxVersion = '3.5.1'
   slf4jVersion = '1.7.25'
   log4jVersion = '2.9.1'
-  pgClientVersion = '0.5.0'
+  pgClientVersion = '0.7.0'
   mockitoVersion = '2.12.0'
+  testcontainerVersion = '1.7.1'
 }
 
 def mainVerticleName = 'com.billyyccc.MainVerticle'
@@ -40,11 +41,12 @@ repositories {
 dependencies {
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-web:$vertxVersion"
-  compile "com.julienviet:reactive-pg-client:$pgClientVersion"
+  compile "io.reactiverse:reactive-pg-client:$pgClientVersion"
   compile "io.vertx:vertx-service-proxy:$vertxVersion"
   compile "io.vertx:vertx-codegen:$vertxVersion"
   compile "io.vertx:vertx-rx-java2:$vertxVersion"
   compile "io.vertx:vertx-web-api-contract:$vertxVersion"
+  compile "io.vertx:vertx-web-client:$vertxVersion"
 
   // Logging Dependencies
   compile "org.slf4j:slf4j-api:$slf4jVersion"
@@ -56,6 +58,7 @@ dependencies {
   testCompile "junit:junit:$junitVersion"
   testCompile "io.vertx:vertx-unit:$vertxVersion"
   testCompile "org.mockito:mockito-core:$mockitoVersion"
+  testCompile "org.testcontainers:database-commons:$testcontainerVersion"
 }
 
 def generatedSrcPath = "${projectDir}/src/main/generated"
@@ -118,5 +121,5 @@ run {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '4.2'
+  gradleVersion = '4.7'
 }

@@ -1,4 +1,4 @@
-package com.billyyccc.http.utils;
+package com.billyyccc.api.utils;
 
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
@@ -21,16 +21,6 @@ public class RestApiUtil {
 
   public static void restResponse(RoutingContext routingContext, int statusCode) {
     restResponse(routingContext, statusCode, "");
-  }
-
-  public static JsonObject dBJsonToRestJson(JsonObject dbJsonObject) {
-    return new JsonObject(dbJsonObject.encodePrettily()
-      .replace("publication_date", "publicationDate"));
-  }
-
-  public static JsonArray dBJsonToRestJson(JsonArray dbJsonArray) {
-    return new JsonArray(dbJsonArray.encodePrettily()
-      .replace("publication_date", "publicationDate"));
   }
 
   public static <T> T decodeBodyToObject(RoutingContext routingContext, Class<T> clazz) {

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Billy Yuan
+ * Copyright (c) 2018 Billy Yuan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,26 @@
  * SOFTWARE.
  */
 
-package com.billyyccc.http.handler;
+package com.billyyccc.api.book;
 
+import com.billyyccc.api.EndPoints;
+import com.billyyccc.api.RestApiTestBase;
+import com.billyyccc.api.handler.BookApis;
 import com.billyyccc.database.reactivex.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.ext.web.Router;
-import org.junit.After;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.ext.web.codec.BodyCodec;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
+import static io.vertx.core.http.HttpMethod.*;
 
 /**
  * This test Class is to perform unit tests for GetBooksHandler of books.
@@ -49,17 +50,10 @@ import org.mockito.Mockito;
  */
 
 @RunWith(VertxUnitRunner.class)
-public class GetBooksHandlerTest {
-  @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
-  private Vertx vertx;
-
+public class GetBooksHandlerTest extends RestApiTestBase {
   @Before
   public void setUp(TestContext testContext) {
-    vertx = new Vertx(rule.vertx());
-    Router router = Router.router(vertx);
-
-    BookDatabaseService bookDatabaseService = Mockito.mock(BookDatabaseService.class);
+    BookDatabaseService mockBookDatabaseService = Mockito.mock(BookDatabaseService.class);
 
     JsonArray mockDbResponse = new JsonArray()
       .add(new JsonObject()
@@ -74,42 +68,36 @@ public class GetBooksHandlerTest {
         .put("publicationDate", "2006-02-20"));
 
 
-    Mockito.when(bookDatabaseService.rxGetBooks(new Book())).thenReturn(Single.just(mockDbResponse));
+    Mockito.when(mockBookDatabaseService.rxGetBooks(new Book())).thenReturn(Single.just(mockDbResponse));
 
-    router.get("/books").handler(new GetBooksHandler(bookDatabaseService));
+    mockServer(1234, GET, EndPoints.GET_BOOKS, BookApis.getBooksHandler(mockBookDatabaseService), testContext);
 
-    vertx.createHttpServer().requestHandler(router::accept).listen(1234, testContext.asyncAssertSuccess());
-  }
-
-  @After
-  public void tearDown(TestContext testContext) {
-    vertx.close(testContext.asyncAssertSuccess());
+    webClient = WebClient.create(vertx);
   }
 
   @Test
   public void restApiTest(TestContext testContext) {
-    Async async = testContext.async();
-    vertx.createHttpClient().getNow(1234, "localhost", "/books", res -> {
-      testContext.assertEquals(200, res.statusCode());
-      res.bodyHandler(body -> {
-        testContext.assertTrue(body.length() > 0);
+    expectedResponseStatusCode = 200;
 
-        JsonArray expectedResponseBody = new JsonArray()
-          .add(new JsonObject()
-            .put("id", 1)
-            .put("title", "Effective Java")
-            .put("category", "java")
-            .put("publicationDate", "2009-01-01"))
-          .add(new JsonObject()
-            .put("id", 2)
-            .put("title", "Thinking in Java")
-            .put("category", "java")
-            .put("publicationDate", "2006-02-20"));
+    JsonArray expectedResponseBody = new JsonArray()
+      .add(new JsonObject()
+        .put("id", 1)
+        .put("title", "Effective Java")
+        .put("category", "java")
+        .put("publicationDate", "2009-01-01"))
+      .add(new JsonObject()
+        .put("id", 2)
+        .put("title", "Thinking in Java")
+        .put("category", "java")
+        .put("publicationDate", "2006-02-20"));
 
-        testContext.assertEquals(expectedResponseBody, body.toJsonArray());
-        async.complete();
-      });
-    });
+    webClient.request(GET, 1234, "localhost", "/books")
+      .putHeader("Content-Type", "application/json; charset=utf-8")
+      .as(BodyCodec.jsonArray())
+      .send(testContext.asyncAssertSuccess(resp -> {
+        testContext.assertEquals(expectedResponseStatusCode, resp.statusCode());
+        testContext.assertEquals(expectedResponseBody, resp.body());
+      }));
   }
 
 }

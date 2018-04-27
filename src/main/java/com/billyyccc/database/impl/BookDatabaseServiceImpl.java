@@ -26,9 +26,9 @@ package com.billyyccc.database.impl;
 
 import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
-import com.julienviet.reactivex.pgclient.PgPool;
-import com.julienviet.reactivex.pgclient.PgResult;
-import com.julienviet.reactivex.pgclient.Tuple;
+import io.reactiverse.reactivex.pgclient.PgPool;
+import io.reactiverse.reactivex.pgclient.PgResult;
+import io.reactiverse.reactivex.pgclient.Tuple;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -40,6 +40,7 @@ import io.vertx.core.logging.LoggerFactory;
 import java.time.LocalDate;
 
 import static com.billyyccc.database.utils.BookDatabaseServiceUtils.*;
+import static com.billyyccc.database.utils.PgResultTransformer.*;
 
 /**
  * @author Billy Yuan <billy112487983@gmail.com>
@@ -57,7 +58,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   private final PgPool pgConnectionPool;
 
-  public BookDatabaseServiceImpl(com.julienviet.pgclient.PgPool pgPool, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
+  public BookDatabaseServiceImpl(io.reactiverse.pgclient.PgPool pgPool, Handler<AsyncResult<BookDatabaseService>> resultHandler) {
     pgConnectionPool = new PgPool(pgPool);
     pgConnectionPool.rxGetConnection()
       .flatMap(pgConnection -> pgConnection
@@ -98,9 +99,9 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
       .map(PgResult::getDelegate)
       .subscribe(pgResult -> {
-        JsonArray jsonArray = transformPgResultToJson(pgResult);
+        JsonArray jsonArray = toJsonArray(pgResult);
         if (jsonArray.size() == 0) {
-          resultHandler.handle(Future.succeededFuture(new JsonObject()));
+          resultHandler.handle(Future.succeededFuture(emptyJsonObject()));
         } else {
           JsonObject dbResponse = jsonArray.getJsonObject(0);
           resultHandler.handle(Future.succeededFuture(dbResponse));
@@ -122,7 +123,7 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
       .map(PgResult::getDelegate)
       .subscribe(
         pgResult -> {
-          JsonArray jsonArray = transformPgResultToJson(pgResult);
+          JsonArray jsonArray = toJsonArray(pgResult);
           resultHandler.handle(Future.succeededFuture(jsonArray));
         },
         throwable -> {

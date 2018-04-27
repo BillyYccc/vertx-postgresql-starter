@@ -24,9 +24,10 @@
 
 package com.billyyccc.database;
 
-import com.julienviet.pgclient.PgClient;
-import com.julienviet.pgclient.PgPool;
-import com.julienviet.pgclient.PgPoolOptions;
+
+import io.reactiverse.pgclient.PgClient;
+import io.reactiverse.pgclient.PgPool;
+import io.reactiverse.pgclient.PgPoolOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;

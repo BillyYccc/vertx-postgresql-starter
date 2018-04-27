@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Billy Yuan
+ * Copyright (c) 2018 Billy Yuan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,37 @@
  * SOFTWARE.
  */
 
-package com.billyyccc.http.handler;
+package com.billyyccc.api.handler;
 
-import com.billyyccc.database.reactivex.BookDatabaseService;
-import com.billyyccc.entity.Book;
-import com.billyyccc.http.exception.BadRequestException;
-import io.vertx.core.Handler;
-import io.vertx.reactivex.ext.web.RoutingContext;
-
-import static com.billyyccc.http.utils.RestApiUtil.*;
+import io.vertx.ext.web.api.validation.ParameterType;
+import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 
 /**
- * This class is handler for adding a new book.
- *
- * @author Billy Yuan <billy112487983@gmail.com>
+ * @author Billy Yuan
  */
+public class HttpRequestValidator {
 
-public class AddBookHandler implements Handler<RoutingContext> {
-  private BookDatabaseService bookDatabaseService;
-
-  public AddBookHandler(BookDatabaseService bookDatabaseService) {
-    this.bookDatabaseService = bookDatabaseService;
+  public static HTTPRequestValidationHandler addBookValidationHandler() {
+    return HTTPRequestValidationHandler.create()
+      .addQueryParam("title", ParameterType.GENERIC_STRING, false)
+      .addQueryParam("category", ParameterType.GENERIC_STRING, false)
+      .addQueryParam("publicationDate", ParameterType.DATE, false);
   }
 
-  @Override
-  public void handle(RoutingContext routingContext) {
-    Book book = decodeBodyToObject(routingContext, Book.class);
-
-    bookDatabaseService.rxAddNewBook(book)
-      .subscribe(
-        () -> restResponse(routingContext, 200, book.toString()),
-        throwable -> routingContext.fail(new BadRequestException(throwable)));
+  public static HTTPRequestValidationHandler deleteBookByIdValidationHandler() {
+    return HTTPRequestValidationHandler.create()
+      .addPathParam("id", ParameterType.INT);
   }
+
+  public static HTTPRequestValidationHandler getBookByIdValidationHandler() {
+    return HTTPRequestValidationHandler.create()
+      .addPathParam("id", ParameterType.INT);
+  }
+
+  public static HTTPRequestValidationHandler upsertBookByIdValidationHandler() {
+    return HTTPRequestValidationHandler.create()
+      .addPathParam("id", ParameterType.INT);
+  }
+
 }
+

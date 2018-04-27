@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.billyyccc.http;
+package com.billyyccc.api;
 
 /**
  * This class is for defining routes for REST APIs.
@@ -30,12 +30,12 @@ package com.billyyccc.http;
  * @author Billy Yuan <billy112487983@gmail.com>
  */
 
-final class EndPoints {
-  protected static final String GET_BOOKS = "/books";
-  protected static final String ADD_NEW_BOOK = "/books";
-  protected static final String GET_BOOK_BY_ID = "/books/:id";
-  protected static final String DELETE_BOOK_BY_ID = "/books/:id";
-  protected static final String UPDATE_BOOK_BY_ID = "/books/:id";
+public final class EndPoints {
+  public static final String GET_BOOKS = "/books";
+  public static final String ADD_NEW_BOOK = "/books";
+  public static final String GET_BOOK_BY_ID = "/books/:id";
+  public static final String DELETE_BOOK_BY_ID = "/books/:id";
+  public static final String UPDATE_BOOK_BY_ID = "/books/:id";
 
   private EndPoints() {
     // No instance of this class allowed

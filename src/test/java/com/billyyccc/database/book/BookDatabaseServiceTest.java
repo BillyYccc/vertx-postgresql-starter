@@ -45,6 +45,7 @@ import org.junit.runner.RunWith;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
+import java.time.Duration;
 import java.time.LocalDate;
 
 /**
@@ -65,7 +66,8 @@ public class BookDatabaseServiceTest {
     .withEnv("POSTGRES_PASSWORD", TEST_PASSWORD)
     .withEnv("POSTGRES_DB", TEST_DB)
     .withClasspathResourceMapping("/init_testdb.sql", "/docker-entrypoint-initdb.d/v10init_testdb.sql", BindMode.READ_ONLY)
-    .withExposedPorts(5432);
+    .withExposedPorts(5432)
+    .withMinimumRunningDuration(Duration.ofSeconds(2));
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -76,7 +78,6 @@ public class BookDatabaseServiceTest {
 
   @Before
   public void setup(TestContext testContext) {
-    waitForContainer();
     int actualPort = postgres.getMappedPort(5432);
     vertx = rule.vertx();
     pgPool = PgClient.pool(vertx, new PgPoolOptions()
@@ -127,14 +128,5 @@ public class BookDatabaseServiceTest {
     testContext.assertEquals(expectedTitle, actualRow.getString("title"));
     testContext.assertEquals(expectedCategory, actualRow.getString("category"));
     testContext.assertEquals(expectedPubDate, actualRow.getLocalDate("publication_date"));
-  }
-
-  // a tmp solution
-  private void waitForContainer() {
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
   }
 }

@@ -28,6 +28,7 @@ import com.billyyccc.database.BookDatabaseService;
 import com.billyyccc.entity.Book;
 import io.reactiverse.reactivex.pgclient.PgPool;
 import io.reactiverse.reactivex.pgclient.PgResult;
+import io.reactiverse.reactivex.pgclient.PgRowSet;
 import io.reactiverse.reactivex.pgclient.Tuple;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -97,9 +98,9 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   @Override
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
     pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
-      .map(PgResult::getDelegate)
-      .subscribe(pgResult -> {
-        JsonArray jsonArray = toJsonArray(pgResult);
+      .map(PgRowSet::getDelegate)
+      .subscribe(pgRowSet -> {
+        JsonArray jsonArray = toJsonArray(pgRowSet);
         if (jsonArray.size() == 0) {
           resultHandler.handle(Future.succeededFuture(emptyJsonObject()));
         } else {
@@ -120,10 +121,10 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     Tuple params = dynamicQuery.getParams();
 
     pgConnectionPool.rxPreparedQuery(preparedQuery, params)
-      .map(PgResult::getDelegate)
+      .map(PgRowSet::getDelegate)
       .subscribe(
-        pgResult -> {
-          JsonArray jsonArray = toJsonArray(pgResult);
+        pgRowSet -> {
+          JsonArray jsonArray = toJsonArray(pgRowSet);
           resultHandler.handle(Future.succeededFuture(jsonArray));
         },
         throwable -> {

@@ -82,7 +82,7 @@ public class BookDatabaseServiceTest {
     vertx = rule.vertx();
     pgPool = PgClient.pool(vertx, new PgPoolOptions()
       .setPort(actualPort)
-      .setUsername(TEST_USER)
+      .setUser(TEST_USER)
       .setPassword(TEST_PASSWORD)
       .setDatabase(TEST_DB));
     bookDatabaseService = new BookDatabaseServiceImpl(pgPool, testContext.asyncAssertSuccess());

@@ -25,6 +25,7 @@
 package com.billyyccc.database.utils;
 
 import io.reactiverse.pgclient.PgResult;
+import io.reactiverse.pgclient.PgRowSet;
 import io.reactiverse.pgclient.Row;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -42,11 +43,11 @@ import java.util.UUID;
  * @author Billy Yuan
  */
 public class PgResultTransformer {
-  public static JsonArray toJsonArray(PgResult<Row> pgResult) {
+  public static JsonArray toJsonArray(PgRowSet pgRowSet) {
     JsonArray jsonArray = new JsonArray();
-    List<String> columnNames = pgResult.columnsNames();
+    List<String> columnNames = pgRowSet.columnsNames();
 
-    pgResult.forEach(row -> {
+    pgRowSet.forEach(row -> {
       JsonObject currentRow = new JsonObject();
       for (String columnName : columnNames) {
         Object value = row.getValue(columnName);

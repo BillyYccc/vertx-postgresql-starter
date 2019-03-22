@@ -58,7 +58,7 @@ public class BookDatabaseVerticle extends AbstractVerticle {
       .setHost(config().getString(CONFIG_PG_HOST, "127.0.0.1"))
       .setPort(config().getInteger(CONFIG_PG_PORT, 5432))
       .setDatabase(config().getString(CONFIG_PG_DATABASE))
-      .setUsername(config().getString(CONFIG_PG_USERNAME))
+      .setUser(config().getString(CONFIG_PG_USERNAME))
       .setPassword(config().getString(CONFIG_PG_PASSWORD))
       .setMaxSize(config().getInteger(CONFIG_PG_POOL_MAX_SIZE, 20));
 

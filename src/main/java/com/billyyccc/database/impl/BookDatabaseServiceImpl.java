@@ -25,10 +25,10 @@
 package com.billyyccc.database.impl;
 
 import com.billyyccc.database.BookDatabaseService;
+import com.billyyccc.database.utils.RowCollectors;
 import com.billyyccc.entity.Book;
+import io.reactiverse.pgclient.Row;
 import io.reactiverse.reactivex.pgclient.PgPool;
-import io.reactiverse.reactivex.pgclient.PgResult;
-import io.reactiverse.reactivex.pgclient.PgRowSet;
 import io.reactiverse.reactivex.pgclient.Tuple;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -39,9 +39,10 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collector;
 
 import static com.billyyccc.database.utils.BookDatabaseServiceUtils.*;
-import static com.billyyccc.database.utils.PgResultTransformer.*;
 
 /**
  * @author Billy Yuan <billy112487983@gmail.com>
@@ -54,6 +55,21 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
   private static final String SQL_UPSERT_BOOK_BY_ID = "INSERT INTO book VALUES($1, $2, $3, $4) " +
     "ON CONFLICT(id) DO UPDATE SET title = $2, category = $3, publication_date = $4";
   private static final String SQL_FIND_ALL_BOOKS = "SELECT * FROM book WHERE TRUE";
+
+  private final static Collector<Row, ?, JsonArray> BOOK_JSON_ARRAY_COLLECTOR = RowCollectors.jsonArrayCollector(
+    row -> {
+      JsonObject jsonObject = new JsonObject();
+      jsonObject.put("id", row.getInteger("id"));
+      jsonObject.put("title", row.getString("title"));
+      jsonObject.put("category", row.getString("category"));
+      LocalDate publicationDate = row.getLocalDate("publication_date");
+      if (publicationDate != null) {
+        jsonObject.put("publicationDate", publicationDate.format(DateTimeFormatter.ISO_DATE));
+      } else {
+        jsonObject.put("publicationDate", publicationDate);
+      }
+      return jsonObject;
+    });
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BookDatabaseServiceImpl.class);
 
@@ -97,20 +113,35 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
 
   @Override
   public BookDatabaseService getBookById(int id, Handler<AsyncResult<JsonObject>> resultHandler) {
-    pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
-      .map(PgRowSet::getDelegate)
-      .subscribe(pgRowSet -> {
-        JsonArray jsonArray = toJsonArray(pgRowSet);
+    //TODO when Rxi-fied API supports wildcard type, then we can use Rxi-fied collector API OOTB.
+    pgConnectionPool.getDelegate().preparedQuery(SQL_FIND_BOOK_BY_ID, io.reactiverse.pgclient.Tuple.of(id), BOOK_JSON_ARRAY_COLLECTOR, ar -> {
+      if (ar.succeeded()) {
+        JsonArray jsonArray = ar.result().value();
         if (jsonArray.size() == 0) {
           resultHandler.handle(Future.succeededFuture(emptyJsonObject()));
         } else {
           JsonObject dbResponse = jsonArray.getJsonObject(0);
           resultHandler.handle(Future.succeededFuture(dbResponse));
         }
-      }, throwable -> {
-        LOGGER.error("Failed to get the book by id " + id, throwable);
-        resultHandler.handle(Future.failedFuture(throwable));
-      });
+      } else {
+        LOGGER.error("Failed to get the book by id " + id, ar.cause());
+        resultHandler.handle(Future.failedFuture(ar.cause()));
+      }
+    });
+//    pgConnectionPool.rxPreparedQuery(SQL_FIND_BOOK_BY_ID, Tuple.of(id))
+//      .map(PgRowSet::getDelegate)
+//      .subscribe(pgRowSet -> {
+//        JsonArray jsonArray = toJsonArray(pgRowSet);
+//        if (jsonArray.size() == 0) {
+//          resultHandler.handle(Future.succeededFuture(emptyJsonObject()));
+//        } else {
+//          JsonObject dbResponse = jsonArray.getJsonObject(0);
+//          resultHandler.handle(Future.succeededFuture(dbResponse));
+//        }
+//      }, throwable -> {
+//        LOGGER.error("Failed to get the book by id " + id, throwable);
+//        resultHandler.handle(Future.failedFuture(throwable));
+//      });
     return this;
   }
 
@@ -120,18 +151,29 @@ public class BookDatabaseServiceImpl implements BookDatabaseService {
     String preparedQuery = dynamicQuery.getPreparedQuery();
     Tuple params = dynamicQuery.getParams();
 
-    pgConnectionPool.rxPreparedQuery(preparedQuery, params)
-      .map(PgRowSet::getDelegate)
-      .subscribe(
-        pgRowSet -> {
-          JsonArray jsonArray = toJsonArray(pgRowSet);
-          resultHandler.handle(Future.succeededFuture(jsonArray));
-        },
-        throwable -> {
-          LOGGER.error("Failed to get the filtered books by the following conditions"
-            + params.toString(), throwable);
-          resultHandler.handle(Future.failedFuture(throwable));
-        });
+    //TODO when Rxi-fied API supports wildcard type, then we can use Rxi-fied collector API OOTB.
+    pgConnectionPool.getDelegate().preparedQuery(preparedQuery, params.getDelegate(), BOOK_JSON_ARRAY_COLLECTOR, ar -> {
+      if (ar.succeeded()) {
+        JsonArray jsonArray = ar.result().value();
+        resultHandler.handle(Future.succeededFuture(jsonArray));
+      } else {
+        LOGGER.error("Failed to get the filtered books by the following conditions"
+          + params.toString(), ar.cause());
+        resultHandler.handle(Future.failedFuture(ar.cause()));
+      }
+    });
+//    pgConnectionPool.rxPreparedQuery(preparedQuery, params)
+//      .map(PgRowSet::getDelegate)
+//      .subscribe(
+//        pgRowSet -> {
+//          JsonArray jsonArray = toJsonArray(pgRowSet);
+//          resultHandler.handle(Future.succeededFuture(jsonArray));
+//        },
+//        throwable -> {
+//          LOGGER.error("Failed to get the filtered books by the following conditions"
+//            + params.toString(), throwable);
+//          resultHandler.handle(Future.failedFuture(throwable));
+//        });
     return this;
   }
 

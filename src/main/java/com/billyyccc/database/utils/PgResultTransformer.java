@@ -24,9 +24,7 @@
 
 package com.billyyccc.database.utils;
 
-import io.reactiverse.pgclient.PgResult;
 import io.reactiverse.pgclient.PgRowSet;
-import io.reactiverse.pgclient.Row;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -41,7 +39,9 @@ import java.util.UUID;
  * Customize your handling for unsupported types of <b>Json</b> in method {@link PgResultTransformer#processType}
  *
  * @author Billy Yuan
+ * @deprecated This awkward class can be replaced the Collector API introduced in newer versions of the SQL client.
  */
+@Deprecated
 public class PgResultTransformer {
   public static JsonArray toJsonArray(PgRowSet pgRowSet) {
     JsonArray jsonArray = new JsonArray();

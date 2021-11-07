@@ -124,3 +124,10 @@ run {
 task wrapper(type: Wrapper) {
   gradleVersion = '4.7'
 }
+
+allprojects {
+    tasks.withType(Test).configureEach {
+        forkEvery = 100
+    }
+
+}
